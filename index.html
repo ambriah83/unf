@@ -118,7 +118,13 @@ footer a.linkbtn:hover{border-color:var(--ice-dim)}
 </div>
 <header>
   <h1><span class="snow">❄</span> <span id="hq-name">Alliance HQ</span> <span id="hq-state" style="font-size:13px;color:var(--muted);font-weight:400"></span></h1>
-  <div class="clocks"><b id="clock-local">--:--</b><b id="clock-utc">--:--</b><span id="sync-dot"></span></div>
+  <div class="clocks" style="align-items:center">
+    <span style="display:inline-flex;gap:5px;align-items:center">
+      <select id="hdr-tz" onchange="hdrTzChanged()" style="width:auto;padding:2px 4px;font-size:12px;font-weight:600;color:var(--ice)"></select>
+      <b id="clock-local">--:--</b>
+    </span>
+    <b id="clock-utc">--:--</b><span id="sync-dot"></span>
+  </div>
   <button class="btn ghost sm" style="margin-top:8px" onclick="openConverter()">🕐 UTC converter</button>
 </header>
 <nav>
@@ -360,7 +366,7 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
 
 function tickClocks(){
   const now=new Date();
-  document.getElementById('clock-local').textContent=tzAbbr(TZ)+': '+now.toLocaleTimeString([],{hour:'numeric',minute:'2-digit',timeZone:TZ});
+  document.getElementById('clock-local').textContent=now.toLocaleTimeString([],{hour:'numeric',minute:'2-digit',timeZone:TZ});
   document.getElementById('clock-utc').textContent='UTC: '+now.toUTCString().slice(17,22);
 }
 setInterval(tickClocks,10000);
@@ -368,6 +374,17 @@ setInterval(tickClocks,10000);
 function tzAbbr(z){
   try{return new Intl.DateTimeFormat('en-US',{timeZone:z,timeZoneName:'short'}).formatToParts(new Date()).find(p=>p.type==='timeZoneName').value.replace(/DT$/,'ST');}
   catch(e){return z;}
+}
+const TZ_ZONES=['America/New_York','America/Chicago','America/Denver','America/Phoenix','America/Los_Angeles','America/Anchorage','Pacific/Honolulu','America/Mexico_City','America/Sao_Paulo','Europe/London','Europe/Paris','Europe/Berlin','Europe/Kyiv','Asia/Manila','Asia/Tokyo','Asia/Shanghai','Asia/Kolkata','Australia/Sydney','Pacific/Auckland','UTC'];
+function fillTzSelect(sel){
+  const zones=[...TZ_ZONES];
+  if(!zones.includes(TZ))zones.unshift(TZ);
+  sel.innerHTML=zones.map(z=>`<option value="${z}" ${z===TZ?'selected':''}>${tzAbbr(z)}</option>`).join('');
+}
+function hdrTzChanged(){
+  TZ=document.getElementById('hdr-tz').value;
+  localStorage.setItem('wos-tz',TZ);
+  tickClocks();
 }
 function openConverter(){
   showModal(`<h3>🕐 UTC converter</h3>
@@ -386,15 +403,14 @@ function openConverter(){
   hs.innerHTML=Array.from({length:24},(_,i)=>`<option>${String(i).padStart(2,'0')}</option>`).join('');
   ms.innerHTML=Array.from({length:12},(_,i)=>`<option>${String(i*5).padStart(2,'0')}</option>`).join('');
   hs.value=String(new Date().getUTCHours()).padStart(2,'0');
-  const zones=['America/New_York','America/Chicago','America/Denver','America/Phoenix','America/Los_Angeles','America/Anchorage','Pacific/Honolulu','America/Mexico_City','America/Sao_Paulo','Europe/London','Europe/Paris','Europe/Berlin','Europe/Kyiv','Asia/Manila','Asia/Tokyo','Asia/Shanghai','Asia/Kolkata','Australia/Sydney','Pacific/Auckland','UTC'];
-  if(!zones.includes(TZ))zones.unshift(TZ);
-  ts.innerHTML=zones.map(z=>`<option value="${z}" ${z===TZ?'selected':''}>${tzAbbr(z)}</option>`).join('');
+  fillTzSelect(ts);
   convertUTC();
 }
 function tzChanged(){
   TZ=document.getElementById('tz-sel').value;
   localStorage.setItem('wos-tz',TZ);
   tickClocks();convertUTC();
+  fillTzSelect(document.getElementById('hdr-tz'));
 }
 function convertUTC(){
   const h=Number(document.getElementById('conv-h').value), m=Number(document.getElementById('conv-m').value);
@@ -456,7 +472,9 @@ function renderDuties(){
             <button class="btn ghost sm" onclick="openDuty('${d.id}')" title="Edit task" style="color:var(--muted);font-size:14px">✎</button>
           </div>
         </div>
-        <div style="display:flex;justify-content:flex-end;margin-top:4px">
+        <div style="display:flex;justify-content:flex-end;gap:6px;margin-top:4px">
+          ${nMsgs===1?`<button class="btn sm" id="qc-${d.msgs[0].id}" onclick="copyMsg('${d.id}','${d.msgs[0].id}','qc-')">📋 Copy</button>`:''}
+          ${nMsgs>1?`<button class="btn sm" onclick="openMsgs('${d.id}')">📋 Copy…</button>`:''}
           <button class="btn ghost sm" onclick="openMsgs('${d.id}')" title="Alliance message templates">💬${nMsgs?' '+nMsgs:''}</button>
         </div>
       </div>`;
@@ -466,13 +484,16 @@ function renderDuties(){
 }
 setInterval(renderDuties,60000);
 
-function copyMsg(dutyId,msgId){
+function copyMsg(dutyId,msgId,prefix){
   const d=S.duties.find(x=>x.id===dutyId);
   const m=(d.msgs||[]).find(x=>x.id===msgId);
+  const pre=prefix||'cp-';
   navigator.clipboard.writeText(m.body).then(()=>{
-    const btn=document.getElementById('cp-'+msgId);
-    btn.textContent='✓';btn.classList.add('copy-ok');
-    setTimeout(()=>{btn.textContent='📋';btn.classList.remove('copy-ok');},1500);
+    const btn=document.getElementById(pre+msgId);
+    if(!btn)return;
+    const old=btn.textContent;
+    btn.textContent='✓ Copied!';btn.classList.add('copy-ok');
+    setTimeout(()=>{btn.textContent=old;btn.classList.remove('copy-ok');},1500);
   });
 }
 
@@ -665,7 +686,7 @@ function importData(ev){
   r.readAsText(f);
 }
 function renderAll(){renderHeader();renderDuties();renderTeam();renderLinks();}
-renderAll();tickClocks();
+renderAll();fillTzSelect(document.getElementById('hdr-tz'));tickClocks();
 const urlAid=new URLSearchParams(location.search).get('a');
 if(urlAid&&!AID)document.getElementById('j-aid').value=urlAid.toLowerCase();
 if(AID&&PASS){pullRemote();}else{showLock();}
