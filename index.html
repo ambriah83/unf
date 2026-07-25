@@ -515,6 +515,23 @@ function rollSchedules(){
 }
 
 function localDayStr(ms){return new Intl.DateTimeFormat('en-CA',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'}).format(ms);}
+function dueDD(d){
+  if(!d.next||!d.days)return null;
+  if(d.time){
+    const [h,m]=d.time.split(':').map(Number);
+    const inst=utcDay(Date.parse(d.next))*DAY+(h*60+m)*60000;
+    return Math.round((Date.parse(localDayStr(inst))-Date.parse(localDayStr(Date.now())))/DAY);
+  }
+  return utcDay(Date.parse(d.next))-utcDay(Date.now());
+}
+function markDone(id){
+  const d=S.duties.find(x=>x.id===id);
+  let t=utcDay(Date.parse(d.next))*DAY;
+  const step=d.days*DAY, today=utcDay(Date.now());
+  do{t+=step;}while(utcDay(t)<=today);
+  d.next=new Date(t).toISOString();
+  save();renderDuties();
+}
 function dueBadge(d){
   if(!d.next||!d.days)return '';
   let big, sub, dd;
@@ -581,7 +598,8 @@ function renderDuties(){
             <button class="btn ghost sm" onclick="openDuty('${d.id}')" title="Edit task" style="color:var(--muted);font-size:14px">✎</button>
           </div>
         </div>
-        <div style="display:flex;justify-content:flex-end;margin-top:4px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+          <div>${dueDD(d)===0?`<button class="btn sm" style="background:rgba(93,211,158,.15);border:1px solid rgba(93,211,158,.4);color:var(--green);box-shadow:none" onclick="markDone('${d.id}')" title="Done for today — jump to the next one">✓ Done</button>`:''}</div>
           <button class="btn ghost sm" onclick="openMsgs('${d.id}')" title="Alliance message templates">💬${nMsgs?' '+nMsgs:''}</button>
         </div>
       </div>`;
