@@ -322,7 +322,7 @@ function showLock(msg){
   document.getElementById('lock').style.display='flex';
   document.getElementById('lock-err').textContent=msg||'';
 }
-function hideLock(){document.getElementById('lock').style.display='none';}
+function hideLock(){document.getElementById('lock').style.display='none';window.scrollTo(0,0);}
 async function unlock(){
   const a=document.getElementById('j-aid').value.trim().toLowerCase();
   const p=document.getElementById('j-pass').value.trim();
