@@ -186,7 +186,7 @@ footer a.linkbtn:hover{border-color:rgba(110,198,255,.45); box-shadow:0 0 14px r
     <h2>Gift codes</h2>
     <button class="btn" onclick="openCode()">+ Add code</button>
   </div>
-  <p class="toolbar-note" style="margin-bottom:12px">Tap a code to copy it, then redeem it with the 🎁 GC Redeem link below. Mark codes expired when they stop working.</p>
+  <p class="toolbar-note" style="margin-bottom:12px">Tap a code to copy it, then redeem it with the 🎁 GC Redeem link below. You can also copy your ID from the team roster.</p>
   <div id="code-list"></div>
 </section>
 
@@ -761,7 +761,7 @@ function renderCodes(){
         <button class="btn ghost sm" onclick="toggleCode('${c.id}')">${c.expired?'Expired — revive?':'Mark expired'}</button>
         <button class="btn danger sm" onclick="delCode('${c.id}',this)">✕</button>
       </div>
-    </div>`).join('')||'<div class="empty">No alliance codes yet — codes below update automatically!</div>';
+    </div>`).join('');
   if(CC){
     const act=CC.filter(c=>c.status==='active');
     const exp=CC.filter(c=>c.status==='expired');
