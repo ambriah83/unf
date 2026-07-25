@@ -403,7 +403,7 @@ async function pushRemote(){
       }
     }
     const now=new Date().toISOString();
-    const r=await fetch(SYNC.rpc+'put_state',{method:'POST',headers:syncHeaders(),body:JSON.stringify({aid:AID,pass:PASS,new_data:S,ts:now})});
+    const r=await fetch(SYNC.rpc+'put_state',{method:'POST',headers:syncHeaders(),body:JSON.stringify({aid:AID,pass:PASS,new_data:S,ts:now,v:2})});
     if(r.status===400||r.status===401||r.status===403){PASS='';localStorage.removeItem('wos-pass');showLock('Passcode changed — enter the new one');return;}
     if(!r.ok)throw new Error(r.status);
     lastSynced=new Date(now).getTime();
@@ -466,7 +466,7 @@ function fillTzSelect(sel){
 function hdrTzChanged(){
   TZ=document.getElementById('hdr-tz').value;
   localStorage.setItem('wos-tz',TZ);
-  tickClocks();
+  tickClocks();renderDuties();
 }
 function openConverter(){
   showModal(`<h3>🕐 UTC converter</h3>
@@ -491,7 +491,7 @@ function openConverter(){
 function tzChanged(){
   TZ=document.getElementById('tz-sel').value;
   localStorage.setItem('wos-tz',TZ);
-  tickClocks();convertUTC();
+  tickClocks();convertUTC();renderDuties();
   fillTzSelect(document.getElementById('hdr-tz'));
 }
 function convertUTC(){
@@ -514,21 +514,28 @@ function rollSchedules(){
   if(changed)save();
 }
 
+function localDayStr(ms){return new Intl.DateTimeFormat('en-CA',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'}).format(ms);}
 function dueBadge(d){
   if(!d.next||!d.days)return '';
-  const dd=utcDay(Date.parse(d.next))-utcDay(Date.now());
-  const dt=new Date(d.next);
-  let big;
-  if(dd===0)big='TODAY';
-  else if(dd<7)big=dt.toLocaleDateString('en-US',{timeZone:'UTC',weekday:'short'});
-  else big=dt.toLocaleDateString('en-US',{timeZone:'UTC',month:'short',day:'numeric'});
-  let sub;
+  let big, sub, dd;
   if(d.time){
     const [h,m]=d.time.split(':').map(Number);
-    const td=new Date();td.setUTCHours(h,m,0,0);
-    sub=td.toLocaleTimeString([],{hour:'numeric',minute:'2-digit',timeZone:TZ})+' '+tzAbbr(TZ);
-  }else if(dd<7)sub=dt.toLocaleDateString('en-US',{timeZone:'UTC',month:'short',day:'numeric'});
-  else sub='in '+dd+' days';
+    const inst=Date.parse(d.next)+(h*60+m)*60000;
+    dd=Math.round((Date.parse(localDayStr(inst))-Date.parse(localDayStr(Date.now())))/DAY);
+    const ev=new Date(inst);
+    if(dd===0)big='TODAY';
+    else if(dd<7)big=ev.toLocaleDateString('en-US',{timeZone:TZ,weekday:'short'});
+    else big=ev.toLocaleDateString('en-US',{timeZone:TZ,month:'short',day:'numeric'});
+    sub=ev.toLocaleTimeString([],{hour:'numeric',minute:'2-digit',timeZone:TZ})+' '+tzAbbr(TZ);
+  }else{
+    dd=utcDay(Date.parse(d.next))-utcDay(Date.now());
+    const dt=new Date(d.next);
+    if(dd===0)big='TODAY';
+    else if(dd<7)big=dt.toLocaleDateString('en-US',{timeZone:'UTC',weekday:'short'});
+    else big=dt.toLocaleDateString('en-US',{timeZone:'UTC',month:'short',day:'numeric'});
+    if(dd<7)sub=dt.toLocaleDateString('en-US',{timeZone:'UTC',month:'short',day:'numeric'});
+    else sub='in '+dd+' days';
+  }
   const cls=dd===0?'now':dd===1?'soon':'';
   return `<div class="due"><div class="n ${cls}">${big}</div><div class="d">${sub}</div></div>`;
 }
