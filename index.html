@@ -520,7 +520,7 @@ function dueBadge(d){
   let big, sub, dd;
   if(d.time){
     const [h,m]=d.time.split(':').map(Number);
-    const inst=Date.parse(d.next)+(h*60+m)*60000;
+    const inst=utcDay(Date.parse(d.next))*DAY+(h*60+m)*60000;
     dd=Math.round((Date.parse(localDayStr(inst))-Date.parse(localDayStr(Date.now())))/DAY);
     const ev=new Date(inst);
     if(dd===0)big='TODAY';
