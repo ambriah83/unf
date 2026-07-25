@@ -496,13 +496,18 @@ function copyMsg(dutyId,msgId,prefix){
 }
 
 function renderTeam(){
-  const rankOrder={R5:0,R4:1,R3:2};
-  const sorted=[...S.team].sort((a,b)=>(rankOrder[a.role]??9)-(rankOrder[b.role]??9));
-  document.getElementById('team-list').innerHTML=sorted.map(p=>{
+  if(!S.teamOrdered){
+    const rankOrder={R5:0,R4:1,R3:2};
+    S.team.sort((a,b)=>(rankOrder[a.role]??9)-(rankOrder[b.role]??9));
+  }
+  document.getElementById('team-list').innerHTML=S.team.map(p=>{
     const n=S.duties.filter(d=>d.primary.includes(p.name)).length;
     const nb=S.duties.filter(d=>d.backup.includes(p.name)).length;
-    return `<div class="card member">
-      <div><span class="nm">${esc(p.name)}</span> <span class="chip norm">${esc(p.role)}</span></div>
+    return `<div class="card member" data-pid="${p.id}">
+      <div style="display:flex;align-items:center;gap:6px;min-width:0">
+        <span class="drag-h" style="cursor:grab;touch-action:none;padding:6px 8px;margin-left:-6px;color:var(--muted);user-select:none">☰</span>
+        <span class="nm">${esc(p.name)}</span> <span class="chip norm">${esc(p.role)}</span>
+      </div>
       <div style="display:flex;gap:8px;align-items:center">
         <span class="duties-count">${n} task${n===1?'':'s'}${nb?' +'+nb+' backup':''}</span>
         <button class="btn ghost sm" onclick="openMember('${p.id}')">Edit</button>
@@ -510,6 +515,38 @@ function renderTeam(){
     </div>`;
   }).join('');
 }
+
+let dragEl=null;
+const teamList=document.getElementById('team-list');
+teamList.addEventListener('pointerdown',e=>{
+  const h=e.target.closest('.drag-h');
+  if(!h)return;
+  dragEl=h.closest('.member');
+  try{h.setPointerCapture(e.pointerId);}catch(x){}
+  dragEl.style.opacity='.55';dragEl.style.borderColor='var(--ice-dim)';
+  e.preventDefault();
+});
+teamList.addEventListener('pointermove',e=>{
+  if(!dragEl)return;
+  const others=[...teamList.querySelectorAll('.member')].filter(c=>c!==dragEl);
+  let placed=false;
+  for(const c of others){
+    const r=c.getBoundingClientRect();
+    if(e.clientY<r.top+r.height/2){teamList.insertBefore(dragEl,c);placed=true;break;}
+  }
+  if(!placed)teamList.appendChild(dragEl);
+});
+function endTeamDrag(){
+  if(!dragEl)return;
+  dragEl.style.opacity='';dragEl.style.borderColor='';
+  const order=[...teamList.querySelectorAll('.member')].map(c=>c.dataset.pid);
+  S.team.sort((a,b)=>order.indexOf(a.id)-order.indexOf(b.id));
+  S.teamOrdered=true;
+  dragEl=null;
+  save();renderTeam();
+}
+document.addEventListener('pointerup',endTeamDrag);
+document.addEventListener('pointercancel',endTeamDrag);
 
 const bg=document.getElementById('modal-bg'), modal=document.getElementById('modal');
 function closeModal(){bg.classList.remove('on');}
