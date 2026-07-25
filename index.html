@@ -576,8 +576,15 @@ function renderDuties(){
   const list=document.getElementById('duty-list');
   let shown=0;
   list.innerHTML=CATS.map(cat=>{
+    const sortKey=d=>{
+      const dd=dueDD(d);
+      if(dd===null)return Infinity;
+      let frac=0;
+      if(d.time){const[h,m]=d.time.split(':').map(Number);frac=(h*60+m)*60000;}
+      return dd*DAY+frac;
+    };
     const ds=S.duties.filter(d=>d.cat===cat&&(!filter||d.primary.includes(filter)||d.backup.includes(filter)))
-      .sort((a,b)=>((a.next&&a.days)?Date.parse(a.next):Infinity)-((b.next&&b.days)?Date.parse(b.next):Infinity));
+      .sort((a,b)=>sortKey(a)-sortKey(b));
     if(!ds.length)return'';
     shown+=ds.length;
     const closed=COLL.has(cat);
