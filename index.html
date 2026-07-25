@@ -924,7 +924,9 @@ function switchAlliance(){
 function renderLinks(){
   if(!S.links)S.links=TEMPLATE('','').links;
   document.getElementById('links-bar').innerHTML=S.links.map(l=>
-    `<a class="linkbtn" href="${esc(l.url||'#')}" target="_blank" rel="noopener" ${l.url?'':'onclick="event.preventDefault();openLinkEdit(\''+l.id+'\')" title="Tap to set the URL"'}>${esc(l.label)}</a>`
+    l.url
+      ?`<a class="linkbtn" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}</a>`
+      :`<button class="linkbtn" style="border-style:dashed;opacity:.75;background:transparent;cursor:pointer;font-family:inherit" onclick="openLinkEdit('${l.id}')" title="No URL yet — tap to add it">${esc(l.label)} <span style="font-size:11px;color:var(--muted)">+ set URL</span></button>`
   ).join('')+`<button class="btn ghost sm" onclick="openLinkEdit()">+ Add link</button>`;
 }
 function openLinkEdit(id){
