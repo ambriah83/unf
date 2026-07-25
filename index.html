@@ -151,6 +151,7 @@ footer a.linkbtn:hover{border-color:rgba(110,198,255,.45); box-shadow:0 0 14px r
 </div>
 <header>
   <h1><span class="snow">❄</span> <span id="hq-name">Alliance HQ</span> <span id="hq-state" style="font-size:13px;color:var(--muted);font-weight:400"></span></h1>
+  <div style="font-size:11px;color:var(--muted);letter-spacing:.6px;margin-top:2px">Whiteout Survival alliance management</div>
   <div class="clocks" style="align-items:center">
     <span style="display:inline-flex;gap:5px;align-items:center">
       <select id="hdr-tz" onchange="hdrTzChanged()" style="width:auto;padding:2px 4px;font-size:12px;font-weight:600;color:var(--ice)"></select>
@@ -202,6 +203,7 @@ footer a.linkbtn:hover{border-color:rgba(110,198,255,.45); box-shadow:0 0 14px r
 
 <footer>
   <div class="links" id="links-bar"></div>
+  <p class="toolbar-note" style="margin-top:12px">❄ WOS Alliance HQ — Whiteout Survival alliance management</p>
 </footer>
 
 <div class="modal-bg" id="modal-bg" onclick="if(event.target===this)closeModal()">
@@ -269,7 +271,8 @@ duties:[
 links:[
  {id:"l1",label:"🎁 GC Redeem",url:"https://wos-giftcode.centurygame.com/"},
  {id:"l2",label:"💬 State DC",url:""},
- {id:"l3",label:"🏗 Calculator",url:"https://quackulator.com/building.php"}
+ {id:"l3",label:"🏗 Calculator",url:"https://quackulator.com/building.php"},
+ {id:"l4",label:"⭐ Frost Star Store",url:"https://pay.whiteoutsurvival.com/"}
 ]});
 
 const SYNC={
@@ -483,7 +486,8 @@ function renderDuties(){
   const list=document.getElementById('duty-list');
   let shown=0;
   list.innerHTML=CATS.map(cat=>{
-    const ds=S.duties.filter(d=>d.cat===cat&&(!filter||d.primary.includes(filter)||d.backup.includes(filter)));
+    const ds=S.duties.filter(d=>d.cat===cat&&(!filter||d.primary.includes(filter)||d.backup.includes(filter)))
+      .sort((a,b)=>((a.next&&a.days)?Date.parse(a.next):Infinity)-((b.next&&b.days)?Date.parse(b.next):Infinity));
     if(!ds.length)return'';
     shown+=ds.length;
     return `<div class="cat">${cat}</div>`+ds.map(d=>{
@@ -540,6 +544,7 @@ function renderTeam(){
       <div style="display:flex;align-items:center;gap:6px;min-width:0">
         <span class="drag-h" style="cursor:grab;touch-action:none;padding:6px 8px;margin-left:-6px;color:var(--muted);user-select:none">☰</span>
         <span class="nm">${esc(p.name)}</span> <span class="chip norm">${esc(p.role)}</span>
+        ${p.wosId?`<button class="chip norm" id="wid-${p.id}" style="cursor:pointer" onclick="copyWosId('${p.id}')" title="Tap to copy WOS ID">🆔 ${esc(p.wosId)}</button>`:''}
       </div>
       <div style="display:flex;gap:8px;align-items:center">
         <span class="duties-count">${n} task${n===1?'':'s'}${nb?' +'+nb+' backup':''}</span>
@@ -667,11 +672,22 @@ function delDutyMsg(dutyId,msgId,btn){
   save();renderDuties();openMsgs(dutyId);
 }
 
+function copyWosId(pid){
+  const p=S.team.find(x=>x.id===pid);
+  navigator.clipboard.writeText(p.wosId).then(()=>{
+    const b=document.getElementById('wid-'+pid);
+    if(!b)return;
+    const old=b.textContent;
+    b.textContent='✓ Copied!';b.classList.add('copy-ok');
+    setTimeout(()=>{b.textContent=old;b.classList.remove('copy-ok');},1500);
+  });
+}
 function openMember(id){
-  const p=id?S.team.find(x=>x.id===id):{name:"",role:"R4"};
+  const p=id?S.team.find(x=>x.id===id):{name:"",role:"R4",wosId:""};
   showModal(`<h3>${id?'Edit person':'New person'}</h3>
     <label>Name (in-game)</label><input id="f-pname" value="${esc(p.name)}">
     <label>Rank</label><select id="f-prole"><option ${p.role==='R5'?'selected':''}>R5</option><option ${p.role==='R4'?'selected':''}>R4</option><option ${p.role==='R3'?'selected':''}>R3</option></select>
+    <label>WOS Player ID (optional — for frost stones & gift codes)</label><input id="f-pwosid" value="${esc(p.wosId||'')}" placeholder="e.g. 123456789" inputmode="numeric">
     <div class="actions">
       ${id?`<button class="btn danger sm" onclick="delMember('${id}',this)">Remove</button>`:''}
       <button class="btn ghost" onclick="closeModal()">Cancel</button>
@@ -679,14 +695,14 @@ function openMember(id){
     </div>`);
 }
 function saveMember(id){
-  const name=val('f-pname'),role=val('f-prole');
-  if(!name)return alert('Needs a name');
+  const name=val('f-pname'),role=val('f-prole'),wosId=val('f-pwosid');
+  if(!name){document.getElementById('f-pname').focus();return;}
   if(id){
     const p=S.team.find(x=>x.id===id);
     const old=p.name;
     if(old!==name){S.duties.forEach(d=>{d.primary=d.primary.map(n=>n===old?name:n);d.backup=d.backup.map(n=>n===old?name:n);});}
-    p.name=name;p.role=role;
-  }else{S.team.push({id:uid(),name,role});}
+    p.name=name;p.role=role;p.wosId=wosId;
+  }else{S.team.push({id:uid(),name,role,wosId});}
   save();closeModal();renderTeam();renderDuties();
 }
 function delMember(id,btn){
