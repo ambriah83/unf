@@ -83,6 +83,16 @@ footer a.linkbtn:hover{border-color:var(--ice-dim)}
 </style>
 </head>
 <body>
+<div id="lock" style="position:fixed;inset:0;background:var(--bg);z-index:100;display:none;align-items:center;justify-content:center;padding:20px">
+  <div style="max-width:340px;width:100%;text-align:center">
+    <div style="font-size:40px">❄</div>
+    <h2 style="font-size:20px;margin:8px 0 4px">UNF United Front</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Enter the alliance passcode</p>
+    <input type="password" id="lock-pass" placeholder="Passcode" style="text-align:center;font-size:16px" onkeydown="if(event.key==='Enter')unlock()">
+    <p id="lock-err" style="font-size:12px;color:var(--red);margin-top:8px;min-height:16px"></p>
+    <button class="btn" style="width:100%;padding:11px" onclick="unlock()">Enter</button>
+  </div>
+</div>
 <header>
   <h1><span class="snow">❄</span> UNF United Front <span style="font-size:13px;color:var(--muted);font-weight:400">· State 3400</span></h1>
   <div class="clocks"><b id="clock-local">--:--</b><b id="clock-utc">--:--</b><span id="sync-dot"></span></div>
@@ -197,10 +207,10 @@ links:[
 ]};
 
 const SYNC={
-  url:'https://pxzkbrgmosykxmkevgek.supabase.co/rest/v1/alliance_state',
-  key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4emticmdtb3N5a3hta2V2Z2VrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ5OTk5MjEsImV4cCI6MjEwMDU3NTkyMX0.KAOw0C45CLlVUeNPLubh6nQUQlpDNYCG5xhHMU8YQ3E',
-  id:'unf'
+  rpc:'https://pxzkbrgmosykxmkevgek.supabase.co/rest/v1/rpc/',
+  key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4emticmdtb3N5a3hta2V2Z2VrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ5OTk5MjEsImV4cCI6MjEwMDU3NTkyMX0.KAOw0C45CLlVUeNPLubh6nQUQlpDNYCG5xhHMU8YQ3E'
 };
+let PASS=localStorage.getItem('wos-pass')||'';
 let S=load();
 let TZ=localStorage.getItem('wos-tz')||Intl.DateTimeFormat().resolvedOptions().timeZone;
 let lastSynced=0, syncTimer=null;
@@ -219,34 +229,60 @@ function setSyncUI(ok){
   else{el.textContent='● offline';el.style.color='var(--amber)';}
 }
 function syncHeaders(){return {apikey:SYNC.key,Authorization:'Bearer '+SYNC.key,'Content-Type':'application/json'};}
+function showLock(msg){
+  document.getElementById('lock').style.display='flex';
+  document.getElementById('lock-err').textContent=msg||'';
+}
+function hideLock(){document.getElementById('lock').style.display='none';}
+async function unlock(){
+  const p=document.getElementById('lock-pass').value.trim();
+  if(!p)return;
+  document.getElementById('lock-err').textContent='';
+  const ok=await pullRemote(p);
+  if(ok){
+    PASS=p;localStorage.setItem('wos-pass',p);
+    hideLock();
+  }else{
+    document.getElementById('lock-err').textContent='Wrong passcode — ask your R5';
+  }
+}
 async function pushRemote(){
+  if(!PASS)return;
   try{
     const now=new Date().toISOString();
-    const r=await fetch(SYNC.url,{method:'POST',headers:{...syncHeaders(),Prefer:'resolution=merge-duplicates'},body:JSON.stringify({id:SYNC.id,data:S,updated_at:now})});
+    const r=await fetch(SYNC.rpc+'put_state',{method:'POST',headers:syncHeaders(),body:JSON.stringify({pass:PASS,new_data:S,ts:now})});
+    if(r.status===400||r.status===401||r.status===403){PASS='';localStorage.removeItem('wos-pass');showLock('Passcode changed — enter the new one');return;}
     if(!r.ok)throw new Error(r.status);
     lastSynced=new Date(now).getTime();
     setSyncUI(true);
   }catch(e){setSyncUI(false);}
 }
-async function pullRemote(){
+async function pullRemote(tryPass){
+  const p=tryPass||PASS;
+  if(!p){showLock();return false;}
   try{
-    const r=await fetch(SYNC.url+'?id=eq.'+SYNC.id+'&select=data,updated_at',{headers:syncHeaders()});
+    const r=await fetch(SYNC.rpc+'get_state',{method:'POST',headers:syncHeaders(),body:JSON.stringify({pass:p})});
+    if(r.status===400||r.status===401||r.status===403){
+      if(!tryPass){PASS='';localStorage.removeItem('wos-pass');showLock('Passcode changed — enter the new one');}
+      return false;
+    }
     if(!r.ok)throw new Error(r.status);
-    const rows=await r.json();
-    if(rows.length){
-      const remoteTime=new Date(rows[0].updated_at).getTime();
+    const row=await r.json();
+    if(row&&row.data){
+      const remoteTime=new Date(row.updated_at).getTime();
       if(remoteTime>lastSynced&&!document.getElementById('modal-bg').classList.contains('on')){
-        S=rows[0].data;
+        S=row.data;
         localStorage.setItem('wos-hq-v10',JSON.stringify(S));
         lastSynced=remoteTime;
         renderAll();
       }
       lastSynced=Math.max(lastSynced,remoteTime);
       setSyncUI(true);
-    }else{pushRemote();}
-  }catch(e){setSyncUI(false);}
+    }
+    return true;
+  }catch(e){setSyncUI(false);return false;}
 }
-setInterval(pullRemote,20000);
+setInterval(()=>pullRemote(),20000);
 function uid(){return 'x'+Math.random().toString(36).slice(2,9);}
 function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function val(id){return document.getElementById(id).value.trim();}
