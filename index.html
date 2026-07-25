@@ -363,9 +363,45 @@ async function createAlliance(){
     hideLock();renderAll();
   }catch(e){err.textContent='Connection problem — try again';}
 }
+function mergeState(R){
+  if(!R)return;
+  const byId=arr=>Object.fromEntries((arr||[]).map(x=>[x.id,x]));
+  const lt=byId(S.team);
+  (R.team||[]).forEach(m=>{
+    if(!lt[m.id])S.team.push(m);
+    else if(!lt[m.id].wosId&&m.wosId)lt[m.id].wosId=m.wosId;
+  });
+  const ld=byId(S.duties);
+  (R.duties||[]).forEach(d=>{
+    if(!ld[d.id]){S.duties.push(d);return;}
+    const L=ld[d.id];
+    const lm=byId(L.msgs);
+    (d.msgs||[]).forEach(m=>{if(!lm[m.id])(L.msgs=L.msgs||[]).push(m);});
+    if(!(L.primary||[]).length&&(d.primary||[]).length)L.primary=d.primary;
+    if(!(L.backup||[]).length&&(d.backup||[]).length)L.backup=d.backup;
+    if(!L.time&&d.time)L.time=d.time;
+  });
+  const lc=byId(S.codes||[]);
+  (R.codes||[]).forEach(c=>{if(!lc[c.id])(S.codes=S.codes||[]).push(c);});
+  const ll=byId(S.links||[]);
+  (R.links||[]).forEach(l=>{
+    if(!ll[l.id])S.links.push(l);
+    else if(!ll[l.id].url&&l.url)ll[l.id].url=l.url;
+  });
+  if(R.meta&&!(S.meta&&S.meta.name))S.meta=R.meta;
+  if(R.teamOrdered)S.teamOrdered=true;
+}
 async function pushRemote(){
   if(!PASS||!AID)return;
   try{
+    const g=await fetch(SYNC.rpc+'get_state',{method:'POST',headers:syncHeaders(),body:JSON.stringify({aid:AID,pass:PASS})});
+    if(g.ok){
+      const row=await g.json();
+      if(row&&row.data&&new Date(row.updated_at).getTime()>lastSynced){
+        mergeState(row.data);
+        renderAll();
+      }
+    }
     const now=new Date().toISOString();
     const r=await fetch(SYNC.rpc+'put_state',{method:'POST',headers:syncHeaders(),body:JSON.stringify({aid:AID,pass:PASS,new_data:S,ts:now})});
     if(r.status===400||r.status===401||r.status===403){PASS='';localStorage.removeItem('wos-pass');showLock('Passcode changed — enter the new one');return;}
@@ -393,7 +429,6 @@ async function pullRemote(tryPass,tryAid){
         lastSynced=remoteTime;
         renderAll();
       }
-      lastSynced=Math.max(lastSynced,remoteTime);
       setSyncUI(true);
     }
     return true;
