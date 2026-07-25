@@ -496,7 +496,9 @@ function copyMsg(dutyId,msgId,prefix){
 }
 
 function renderTeam(){
-  document.getElementById('team-list').innerHTML=S.team.map(p=>{
+  const rankOrder={R5:0,R4:1,R3:2};
+  const sorted=[...S.team].sort((a,b)=>(rankOrder[a.role]??9)-(rankOrder[b.role]??9));
+  document.getElementById('team-list').innerHTML=sorted.map(p=>{
     const n=S.duties.filter(d=>d.primary.includes(p.name)).length;
     const nb=S.duties.filter(d=>d.backup.includes(p.name)).length;
     return `<div class="card member">
