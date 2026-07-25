@@ -163,6 +163,7 @@ footer a.linkbtn:hover{border-color:rgba(110,198,255,.45); box-shadow:0 0 14px r
 </header>
 <nav>
   <button class="on" data-tab="duties">📋 Tasks</button>
+  <button data-tab="codes">🎁 Codes</button>
   <button data-tab="team">👥 Team</button>
 </nav>
 <main>
@@ -178,6 +179,15 @@ footer a.linkbtn:hover{border-color:rgba(110,198,255,.45); box-shadow:0 0 14px r
   </div>
   <p class="toolbar-note" style="margin-bottom:10px">Each task shows who's on it and when the next one is — tap 💬 for its saved messages, ✎ to edit the task.</p>
   <div id="duty-list"></div>
+</section>
+
+<section class="tab" id="tab-codes">
+  <div class="bar">
+    <h2>Gift codes</h2>
+    <button class="btn" onclick="openCode()">+ Add code</button>
+  </div>
+  <p class="toolbar-note" style="margin-bottom:12px">Tap a code to copy it, then redeem it with the 🎁 GC Redeem link below. Mark codes expired when they stop working.</p>
+  <div id="code-list"></div>
 </section>
 
 <section class="tab" id="tab-team">
@@ -268,6 +278,7 @@ duties:[
  {id:"d12",cat:"Land",name:"Bear spot setting",freq:"Monthly (post-SvS)",primary:[],backup:[],notes:"Based on Foundry battle power after SvS",msgs:[]},
  {id:"d13",cat:"Land",name:"Place resource nodes",freq:"Daily",primary:[],backup:[],notes:"Everyone",msgs:[]}
 ],
+codes:[],
 links:[
  {id:"l1",label:"🎁 GC Redeem",url:"https://wos-giftcode.centurygame.com/"},
  {id:"l2",label:"💬 State DC",url:""},
@@ -471,10 +482,20 @@ function rollSchedules(){
 function dueBadge(d){
   if(!d.next||!d.days)return '';
   const dd=utcDay(Date.parse(d.next))-utcDay(Date.now());
-  const n=dd===0?'TODAY':dd===1?'1 day':dd+' days';
+  const dt=new Date(d.next);
+  let big;
+  if(dd===0)big='TODAY';
+  else if(dd<7)big=dt.toLocaleDateString('en-US',{timeZone:'UTC',weekday:'short'});
+  else big=dt.toLocaleDateString('en-US',{timeZone:'UTC',month:'short',day:'numeric'});
+  let sub;
+  if(d.time){
+    const [h,m]=d.time.split(':').map(Number);
+    const td=new Date();td.setUTCHours(h,m,0,0);
+    sub=td.toLocaleTimeString([],{hour:'numeric',minute:'2-digit',timeZone:TZ})+' '+tzAbbr(TZ);
+  }else if(dd<7)sub=dt.toLocaleDateString('en-US',{timeZone:'UTC',month:'short',day:'numeric'});
+  else sub='in '+dd+' days';
   const cls=dd===0?'now':dd===1?'soon':'';
-  const when=new Date(d.next).toLocaleDateString('en-US',{timeZone:'UTC',weekday:'short',month:'short',day:'numeric'});
-  return `<div class="due"><div class="n ${cls}">${n}</div><div class="d">${dd===0?'check in-game time':when}</div></div>`;
+  return `<div class="due"><div class="n ${cls}">${big}</div><div class="d">${sub}</div></div>`;
 }
 
 function renderDuties(){
@@ -606,6 +627,12 @@ function openDuty(id){
     <label>🛟 Backup — steps in when main is away</label><div class="pill-multi" id="pick-b">${S.team.map(p=>`<button class="${pickB.includes(p.name)?'selb':''}" onclick="togglePick('b','${esc(p.name)}',this)">${esc(p.name)}</button>`).join('')}</div>
     <label>Next date (leave blank for no countdown)</label><input type="date" id="f-next" value="${dateVal}">
     <label>Repeats every ... days</label><input type="number" id="f-days" value="${d.days||''}" min="0.5" step="0.5" placeholder="2, 7, 14, 28...">
+    <label>Time — server time UTC (optional, for bear traps)</label>
+    <div style="display:flex;gap:6px;align-items:center">
+      <select id="f-th" style="width:auto"><option value="">—</option>${Array.from({length:24},(_,i)=>`<option ${d.time&&d.time.split(':')[0]==String(i).padStart(2,'0')?'selected':''}>${String(i).padStart(2,'0')}</option>`).join('')}</select>
+      <span style="color:var(--muted)">:</span>
+      <select id="f-tmn" style="width:auto">${Array.from({length:12},(_,i)=>`<option ${d.time&&d.time.split(':')[1]==String(i*5).padStart(2,'0')?'selected':''}>${String(i*5).padStart(2,'0')}</option>`).join('')}</select>
+    </div>
     <label>Notes</label><textarea id="f-notes" style="min-height:60px">${esc(d.notes)}</textarea>
     <div class="actions">
       ${id?`<button class="btn danger sm" onclick="delDuty('${id}',this)">Delete</button>`:''}
@@ -624,6 +651,8 @@ function saveDuty(id){
   if(!obj.name)return alert('Task needs a name');
   if(nd&&days){obj.next=nd+'T00:00:00.000Z';obj.days=days;}
   else{obj.next=null;obj.days=null;}
+  const th=val('f-th');
+  obj.time=th!==''?th+':'+(val('f-tmn')||'00'):null;
   if(id){const d=S.duties.find(x=>x.id===id);obj.msgs=d.msgs||[];Object.assign(d,obj);}
   else{obj.id=uid();obj.msgs=[];S.duties.push(obj);}
   save();closeModal();renderDuties();renderTeam();
@@ -672,6 +701,58 @@ function delDutyMsg(dutyId,msgId,btn){
   save();renderDuties();openMsgs(dutyId);
 }
 
+function renderCodes(){
+  if(!S.codes)S.codes=[];
+  const sorted=[...S.codes].sort((a,b)=>(a.expired?1:0)-(b.expired?1:0));
+  document.getElementById('code-list').innerHTML=sorted.map(c=>`
+    <div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;${c.expired?'opacity:.45':''}">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0;flex-wrap:wrap">
+        <button class="chip" id="gc-${c.id}" onclick="copyCode('${c.id}')" style="cursor:pointer;font-family:Consolas,monospace;font-size:14px;${c.expired?'text-decoration:line-through':''}" title="Tap to copy">🎁 ${esc(c.code)}</button>
+        ${c.note?`<span class="toolbar-note">${esc(c.note)}</span>`:''}
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button class="btn ghost sm" onclick="toggleCode('${c.id}')">${c.expired?'Expired — revive?':'Mark expired'}</button>
+        <button class="btn danger sm" onclick="delCode('${c.id}',this)">✕</button>
+      </div>
+    </div>`).join('')||'<div class="empty">No gift codes yet — add one when a new code drops!</div>';
+}
+function copyCode(id){
+  const c=S.codes.find(x=>x.id===id);
+  navigator.clipboard.writeText(c.code).then(()=>{
+    const b=document.getElementById('gc-'+id);
+    const old=b.textContent;
+    b.textContent='✓ Copied!';b.classList.add('copy-ok');
+    setTimeout(()=>{b.textContent=old;b.classList.remove('copy-ok');},1500);
+  });
+}
+function toggleCode(id){
+  const c=S.codes.find(x=>x.id===id);
+  c.expired=!c.expired;
+  save();renderCodes();
+}
+function delCode(id,btn){
+  if(btn&&!armed(btn))return;
+  S.codes=S.codes.filter(x=>x.id!==id);
+  save();renderCodes();
+}
+function openCode(id){
+  const c=id?S.codes.find(x=>x.id===id):{code:"",note:""};
+  showModal(`<h3>${id?'Edit code':'New gift code'}</h3>
+    <label>Code</label><input id="f-gcode" value="${esc(c.code)}" placeholder="e.g. WOS2026SNOW" autocapitalize="characters">
+    <label>Note (optional)</label><input id="f-gnote" value="${esc(c.note||'')}" placeholder="e.g. expires 8/15, from state chat">
+    <div class="actions">
+      <button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn" onclick="saveCode('${id||''}')">Save</button>
+    </div>`);
+}
+function saveCode(id){
+  const code=val('f-gcode'),note=val('f-gnote');
+  if(!code){document.getElementById('f-gcode').focus();return;}
+  if(!S.codes)S.codes=[];
+  if(id){Object.assign(S.codes.find(x=>x.id===id),{code,note});}
+  else{S.codes.push({id:uid(),code,note,expired:false});}
+  save();closeModal();renderCodes();
+}
 function copyWosId(pid){
   const p=S.team.find(x=>x.id===pid);
   navigator.clipboard.writeText(p.wosId).then(()=>{
@@ -771,7 +852,7 @@ function importData(ev){
   r.onload=()=>{try{S=JSON.parse(r.result);save();renderAll();}catch(e){}};
   r.readAsText(f);
 }
-function renderAll(){renderHeader();renderDuties();renderTeam();renderLinks();}
+function renderAll(){renderHeader();renderDuties();renderTeam();renderLinks();renderCodes();}
 renderAll();fillTzSelect(document.getElementById('hdr-tz'));tickClocks();
 const urlAid=new URLSearchParams(location.search).get('a');
 if(urlAid&&!AID)document.getElementById('j-aid').value=urlAid.toLowerCase();
