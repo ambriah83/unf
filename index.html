@@ -540,6 +540,12 @@ function dueBadge(d){
   return `<div class="due"><div class="n ${cls}">${big}</div><div class="d">${sub}</div></div>`;
 }
 
+let COLL=new Set(JSON.parse(localStorage.getItem('wos-coll')||'[]'));
+function toggleCat(cat){
+  if(COLL.has(cat))COLL.delete(cat);else COLL.add(cat);
+  localStorage.setItem('wos-coll',JSON.stringify([...COLL]));
+  renderDuties();
+}
 function renderDuties(){
   rollSchedules();
   const sel=document.getElementById('duty-filter');
@@ -553,7 +559,10 @@ function renderDuties(){
       .sort((a,b)=>((a.next&&a.days)?Date.parse(a.next):Infinity)-((b.next&&b.days)?Date.parse(b.next):Infinity));
     if(!ds.length)return'';
     shown+=ds.length;
-    return `<div class="cat">${cat}</div>`+ds.map(d=>{
+    const closed=COLL.has(cat);
+    const header=`<div class="cat" onclick="toggleCat('${cat}')" style="cursor:pointer;user-select:none" title="Tap to ${closed?'expand':'collapse'}">${cat}<span style="letter-spacing:0;color:var(--muted);font-weight:400">· ${ds.length}</span><span>${closed?'▸':'▾'}</span></div>`;
+    if(closed)return header;
+    return header+ds.map(d=>{
       const p=d.primary.length?d.primary.map(x=>`<span class="chip">👑 ${esc(x)}${S.team.some(t=>t.name===x)?'':' ⚠'}</span>`).join(''):'<span class="chip warn">⚠ Unassigned</span>';
       const b=d.backup.length?d.backup.map(x=>`<span class="chip backup">🛟 ${esc(x)}</span>`).join(''):'<span class="chip norm">none</span>';
       const scheduled=d.next&&d.days;
