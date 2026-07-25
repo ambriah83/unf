@@ -630,7 +630,7 @@ function switchAlliance(){
 function renderLinks(){
   if(!S.links)S.links=TEMPLATE('','').links;
   document.getElementById('links-bar').innerHTML=S.links.map(l=>
-    `<a class="linkbtn" href="${esc(l.url||'#')}" target="_blank" rel="noopener" ${l.url?'':'onclick="event.preventDefault();openLinkEdit(\''+l.id+'\')" title="Tap to set the URL"'}>${esc(l.label)}${l.url?'':' (set link)'}</a>`
+    `<a class="linkbtn" href="${esc(l.url||'#')}" target="_blank" rel="noopener" ${l.url?'':'onclick="event.preventDefault();openLinkEdit(\''+l.id+'\')" title="Tap to set the URL"'}>${esc(l.label)}</a>`
   ).join('')+`<button class="btn ghost sm" onclick="openLinkEdit()">+ Add link</button>`;
 }
 function openLinkEdit(id){
