@@ -171,9 +171,11 @@ footer a.linkbtn:hover{border-color:var(--ice-dim)}
 
 <script>
 const CATS=["Events","Strategy","HR & People","Land"];
-function rel(n){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+n);return d.toISOString();}
-function dow(w){const d=new Date();d.setHours(0,0,0,0);do{d.setDate(d.getDate()+1);}while(d.getDay()!==w);return d.toISOString();}
-function dAt(s){return new Date(s+'T00:00:00').toISOString();}
+const DAY=864e5;
+function utcDay(ms){return Math.floor(ms/DAY);}
+function rel(n){return new Date((utcDay(Date.now())+n)*DAY).toISOString();}
+function dow(w){let t=(utcDay(Date.now())+1)*DAY;while(new Date(t).getUTCDay()!==w)t+=DAY;return new Date(t).toISOString();}
+function dAt(s){return s+'T00:00:00.000Z';}
 
 const TEMPLATE=(nm,st)=>({
 meta:{name:nm,state:st},
@@ -402,25 +404,24 @@ function convertUTC(){
 }
 
 function rollSchedules(){
-  const today0=new Date();today0.setHours(0,0,0,0);
+  const today=utcDay(Date.now());
+  let changed=false;
   S.duties.forEach(d=>{
     if(!d.next||!d.days)return;
-    let t=new Date(d.next);t.setHours(0,0,0,0);
-    const step=Math.round(d.days*864e5);
-    while(t<today0){t=new Date(t.getTime()+step);t.setHours(0,0,0,0);}
-    d.next=t.toISOString();
+    let t=Date.parse(d.next), rolled=false;
+    const step=d.days*DAY;
+    while(utcDay(t)<today){t+=step;rolled=true;}
+    if(rolled){d.next=new Date(t).toISOString();changed=true;}
   });
-  save();
+  if(changed)save();
 }
 
 function dueBadge(d){
   if(!d.next||!d.days)return '';
-  const today0=new Date();today0.setHours(0,0,0,0);
-  const t=new Date(d.next);t.setHours(0,0,0,0);
-  const dd=Math.round((t-today0)/864e5);
+  const dd=utcDay(Date.parse(d.next))-utcDay(Date.now());
   const n=dd===0?'TODAY':dd===1?'1 day':dd+' days';
   const cls=dd===0?'now':dd===1?'soon':'';
-  const when=t.toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'});
+  const when=new Date(d.next).toLocaleDateString('en-US',{timeZone:'UTC',weekday:'short',month:'short',day:'numeric'});
   return `<div class="due"><div class="n ${cls}">${n}</div><div class="d">${dd===0?'check in-game time':when}</div></div>`;
 }
 
@@ -500,7 +501,7 @@ function openDuty(id){
   const d=id?S.duties.find(x=>x.id===id):{cat:"Events",name:"",freq:"",primary:[],backup:[],notes:"",msgs:[]};
   pickP=[...d.primary];pickB=[...d.backup];
   let dateVal='';
-  if(d.next){const t=new Date(d.next);dateVal=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
+  if(d.next){const t=new Date(d.next);dateVal=t.getUTCFullYear()+'-'+String(t.getUTCMonth()+1).padStart(2,'0')+'-'+String(t.getUTCDate()).padStart(2,'0');}
   showModal(`<h3>${id?'Edit task':'New task'}</h3>
     <label>Task name</label><input id="f-name" value="${esc(d.name)}">
     <label>Category</label><select id="f-cat">${CATS.map(c=>`<option ${c===d.cat?'selected':''}>${c}</option>`).join('')}</select>
@@ -525,7 +526,7 @@ function saveDuty(id){
   const nd=val('f-next'), days=parseFloat(val('f-days'));
   const obj={cat:val('f-cat'),name:val('f-name'),freq:val('f-freq'),primary:pickP,backup:pickB,notes:val('f-notes')};
   if(!obj.name)return alert('Task needs a name');
-  if(nd&&days){obj.next=new Date(nd+'T00:00:00').toISOString();obj.days=days;}
+  if(nd&&days){obj.next=nd+'T00:00:00.000Z';obj.days=days;}
   else{obj.next=null;obj.days=null;}
   if(id){const d=S.duties.find(x=>x.id===id);obj.msgs=d.msgs||[];Object.assign(d,obj);}
   else{obj.id=uid();obj.msgs=[];S.duties.push(obj);}
