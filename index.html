@@ -597,10 +597,12 @@ function renderTeam(){
     const n=S.duties.filter(d=>d.primary.includes(p.name)).length;
     const nb=S.duties.filter(d=>d.backup.includes(p.name)).length;
     return `<div class="card member" data-pid="${p.id}">
-      <div style="display:flex;align-items:center;gap:6px;min-width:0;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:8px;min-width:0">
         <span class="drag-h" style="cursor:grab;touch-action:none;padding:6px 8px;margin-left:-6px;color:var(--muted);user-select:none">☰</span>
-        <span class="nm">${esc(p.name)}</span> <span class="chip norm">${esc(p.role)}</span>
-        ${p.wosId?`<button class="chip norm" id="wid-${p.id}" style="cursor:pointer;white-space:nowrap" onclick="copyWosId('${p.id}')" title="Tap to copy WOS ID">🆔 ${esc(p.wosId)}</button>`:''}
+        <div style="display:flex;flex-direction:column;gap:7px;min-width:0;padding:3px 0">
+          <div style="display:flex;align-items:center;gap:8px"><span class="nm">${esc(p.name)}</span> <span class="chip norm">${esc(p.role)}</span></div>
+          ${p.wosId?`<div><button class="chip norm" id="wid-${p.id}" style="cursor:pointer;white-space:nowrap" onclick="copyWosId('${p.id}')" title="Tap to copy WOS ID">🆔 ${esc(p.wosId)}</button></div>`:''}
+        </div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
         <span class="duties-count" style="white-space:nowrap">${n} task${n===1?'':'s'}</span>
