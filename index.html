@@ -464,8 +464,8 @@ function renderDuties(){
           <div style="flex:1;min-width:0">
             <div class="duty-name">${esc(d.name)}</div>
             ${sub?`<div class="duty-freq">${sub}</div>`:''}
-            <div class="chips"><span class="chip-label">Main:</span>${p}</div>
-            <div class="chips"><span class="chip-label">Backup:</span>${b}</div>
+            <div class="chips" onclick="openDuty('${d.id}')" style="cursor:pointer" title="Tap to change who's assigned"><span class="chip-label">Main:</span>${p}</div>
+            <div class="chips" onclick="openDuty('${d.id}')" style="cursor:pointer" title="Tap to change who's assigned"><span class="chip-label">Backup:</span>${b}</div>
           </div>
           <div class="row-actions">
             ${dueBadge(d)}
