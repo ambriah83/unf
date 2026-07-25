@@ -6,62 +6,90 @@
 <title>WOS Alliance HQ</title>
 <style>
 :root{
-  --bg:#0c141d; --card:#151f2b; --card2:#1b2836; --border:#26374a;
-  --text:#e8f1f8; --muted:#8aa3b8; --ice:#6ec6ff; --ice-dim:#2b5d80;
+  --bg:#0a1220; --card:#152234; --card2:#182a3d; --border:rgba(110,198,255,.14);
+  --text:#e8f1f8; --muted:#8aa3b8; --ice:#6ec6ff; --ice-dim:#2b5d80; --ice-soft:#bfe6ff;
   --green:#5dd39e; --amber:#ffc85c; --red:#ff7a7a; --purple:#b79cff;
 }
 *{box-sizing:border-box; margin:0; padding:0}
-body{background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; min-height:100vh}
-header{padding:16px 20px 0; max-width:960px; margin:0 auto}
-h1{font-size:22px; letter-spacing:.5px}
-h1 .snow{color:var(--ice)}
-.clocks{display:flex; gap:16px; margin-top:6px; font-size:13px; color:var(--muted)}
+body{
+  background:
+    radial-gradient(1100px 700px at 85% -10%, rgba(35,84,128,.55) 0%, transparent 60%),
+    radial-gradient(900px 650px at -15% 25%, rgba(24,66,96,.45) 0%, transparent 55%),
+    radial-gradient(700px 500px at 50% 110%, rgba(20,52,80,.4) 0%, transparent 60%),
+    var(--bg);
+  background-attachment:fixed;
+  color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; min-height:100vh}
+#snow{position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden}
+#snow i{position:absolute; top:-6vh; color:var(--ice-soft); font-style:normal; animation:fall linear infinite}
+#snow i:nth-child(1){left:8%; font-size:11px; opacity:.16; animation-duration:16s}
+#snow i:nth-child(2){left:22%; font-size:15px; opacity:.10; animation-duration:23s; animation-delay:-6s}
+#snow i:nth-child(3){left:37%; font-size:9px; opacity:.20; animation-duration:14s; animation-delay:-3s}
+#snow i:nth-child(4){left:52%; font-size:13px; opacity:.12; animation-duration:20s; animation-delay:-11s}
+#snow i:nth-child(5){left:64%; font-size:10px; opacity:.18; animation-duration:17s; animation-delay:-8s}
+#snow i:nth-child(6){left:76%; font-size:16px; opacity:.09; animation-duration:26s; animation-delay:-14s}
+#snow i:nth-child(7){left:88%; font-size:12px; opacity:.15; animation-duration:19s; animation-delay:-5s}
+#snow i:nth-child(8){left:95%; font-size:9px; opacity:.2; animation-duration:15s; animation-delay:-9s}
+@keyframes fall{to{transform:translateY(112vh) rotate(340deg)}}
+@media (prefers-reduced-motion: reduce){#snow{display:none} .due .n.now{animation:none}}
+header,nav,main,footer{position:relative; z-index:1}
+header{padding:18px 20px 0; max-width:960px; margin:0 auto}
+h1{font-size:23px; letter-spacing:.5px}
+h1 .snow{color:var(--ice); text-shadow:0 0 16px rgba(110,198,255,.55)}
+#hq-name{background:linear-gradient(135deg,#e8f6ff 10%,#9ed6ff 55%,#5db4ec); -webkit-background-clip:text; background-clip:text; color:transparent}
+.clocks{display:flex; gap:16px; margin-top:8px; font-size:13px; color:var(--muted); flex-wrap:wrap}
 .clocks b{color:var(--ice); font-weight:600}
 .utc-conv{display:flex; gap:8px; align-items:center; margin-top:10px; font-size:13px; flex-wrap:wrap}
 .utc-conv input{width:auto; padding:4px 8px; font-size:13px}
 .utc-conv b{color:var(--green); font-size:15px}
-nav{display:flex; gap:6px; max-width:960px; margin:14px auto 0; padding:0 20px; flex-wrap:wrap}
-nav button{background:var(--card); color:var(--muted); border:1px solid var(--border); border-radius:10px 10px 0 0; padding:10px 16px; font-size:14px; cursor:pointer; font-weight:600}
-nav button.on{background:var(--card2); color:var(--ice); border-bottom-color:var(--card2)}
-main{max-width:960px; margin:0 auto; padding:16px 20px 40px}
+nav{display:flex; gap:8px; max-width:960px; margin:16px auto 0; padding:0 20px; flex-wrap:wrap}
+nav button{background:rgba(21,34,52,.6); color:var(--muted); border:1px solid var(--border); border-radius:12px; padding:10px 18px; font-size:14px; cursor:pointer; font-weight:600; backdrop-filter:blur(6px); transition:all .18s}
+nav button.on{background:linear-gradient(160deg,rgba(43,93,128,.55),rgba(24,53,80,.75)); color:var(--ice-soft); border-color:rgba(110,198,255,.4); box-shadow:0 0 16px rgba(110,198,255,.18), inset 0 1px 0 rgba(191,230,255,.15)}
+nav button:hover{border-color:rgba(110,198,255,.35); color:var(--ice-soft)}
+main{max-width:960px; margin:0 auto; padding:18px 20px 40px}
 .tab{display:none}
 .tab.on{display:block}
 .bar{display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap}
 .bar h2{font-size:17px}
-.btn{background:var(--ice-dim); color:#fff; border:none; border-radius:8px; padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer}
-.btn:hover{background:#377199}
-.btn.ghost{background:transparent; border:1px solid var(--border); color:var(--muted)}
+.btn{background:linear-gradient(135deg,#2f739e,#1f5480); color:#eaf6ff; border:1px solid rgba(110,198,255,.35); border-radius:10px; padding:8px 15px; font-size:13px; font-weight:600; cursor:pointer; box-shadow:0 2px 10px rgba(0,0,0,.3), inset 0 1px 0 rgba(191,230,255,.2); transition:all .18s}
+.btn:hover{box-shadow:0 0 14px rgba(110,198,255,.35), inset 0 1px 0 rgba(191,230,255,.25); border-color:rgba(110,198,255,.6)}
+.btn.ghost{background:rgba(21,34,52,.5); border:1px solid var(--border); color:var(--muted); box-shadow:none}
+.btn.ghost:hover{color:var(--ice-soft); border-color:rgba(110,198,255,.4); box-shadow:0 0 10px rgba(110,198,255,.15)}
 .btn.sm{padding:4px 10px; font-size:12px}
-.btn.danger{background:transparent; border:1px solid #5b2e2e; color:var(--red)}
-.card{background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px 14px; margin-bottom:10px}
-.cat{font-size:12px; text-transform:uppercase; letter-spacing:1.5px; color:var(--ice); margin:18px 0 8px; font-weight:700}
+.btn.danger{background:rgba(60,20,20,.35); border:1px solid rgba(255,122,122,.35); color:var(--red); box-shadow:none}
+.card{background:linear-gradient(165deg,rgba(27,44,64,.82),rgba(15,27,42,.92)); border:1px solid var(--border); border-radius:14px; padding:13px 15px; margin-bottom:10px; backdrop-filter:blur(6px); box-shadow:0 4px 16px rgba(0,0,0,.32), inset 0 1px 0 rgba(191,230,255,.05); transition:border-color .18s, transform .18s}
+.card:hover{border-color:rgba(110,198,255,.3)}
+.cat{display:flex; align-items:center; gap:8px; font-size:12px; text-transform:uppercase; letter-spacing:2px; color:var(--ice); margin:22px 0 10px; font-weight:700; text-shadow:0 0 12px rgba(110,198,255,.35)}
+.cat::before{content:"❅"; opacity:.8}
+.cat::after{content:""; flex:1; height:1px; background:linear-gradient(90deg,rgba(110,198,255,.35),transparent)}
 .duty-top{display:flex; justify-content:space-between; gap:10px; align-items:flex-start}
 .duty-name{font-weight:600; font-size:15px}
 .duty-freq{font-size:12px; color:var(--muted); margin-top:2px}
 .chips{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; align-items:center}
-.chip{font-size:12px; padding:3px 10px; border-radius:20px; background:#1e3346; color:var(--ice); font-weight:600}
-.chip.backup{background:#2b2440; color:var(--purple)}
-.chip.warn{background:#3d2c14; color:var(--amber)}
-.chip.norm{background:#20303c; color:var(--muted); font-weight:400}
+.chip{font-size:12px; padding:3px 11px; border-radius:20px; background:rgba(110,198,255,.1); border:1px solid rgba(110,198,255,.22); color:var(--ice); font-weight:600}
+.chip.backup{background:rgba(183,156,255,.1); border-color:rgba(183,156,255,.25); color:var(--purple)}
+.chip.warn{background:rgba(255,200,92,.1); border-color:rgba(255,200,92,.3); color:var(--amber)}
+.chip.norm{background:rgba(138,163,184,.08); border-color:rgba(138,163,184,.15); color:var(--muted); font-weight:400}
 .chip-label{font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; align-self:center; font-weight:700}
 .row-actions{display:flex; gap:6px; flex-shrink:0; align-items:flex-start}
 .due{text-align:right; min-width:86px}
-.due .n{font-size:18px; font-weight:700; color:var(--ice); line-height:1.1}
-.due .n.now{color:var(--green)}
-.due .n.soon{color:var(--amber)}
+.due .n{font-size:19px; font-weight:700; color:var(--ice); line-height:1.1; text-shadow:0 0 14px rgba(110,198,255,.45)}
+.due .n.now{color:var(--green); text-shadow:0 0 16px rgba(93,211,158,.55); animation:pulse 2s ease-in-out infinite}
+.due .n.soon{color:var(--amber); text-shadow:0 0 14px rgba(255,200,92,.45)}
+@keyframes pulse{50%{opacity:.75}}
 .due .d{font-size:11px; color:var(--muted)}
-.msgs{margin-top:10px; border-top:1px dashed var(--border); padding-top:8px; display:flex; flex-direction:column; gap:6px}
+.msgs{margin-top:10px; border-top:1px dashed rgba(110,198,255,.15); padding-top:8px; display:flex; flex-direction:column; gap:6px}
 .msgs-label{font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; font-weight:700}
 .msg-row{display:flex; align-items:center; gap:8px}
 .msg-row .t{font-size:13px; color:var(--text); cursor:pointer; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 .msg-row .t:hover{color:var(--ice)}
 .copy-ok{color:var(--green)!important}
-select,input,textarea{background:var(--bg); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:14px; font-family:inherit; width:100%}
+select,input,textarea{background:rgba(10,18,32,.8); color:var(--text); border:1px solid var(--border); border-radius:9px; padding:8px 10px; font-size:14px; font-family:inherit; width:100%; transition:border-color .18s, box-shadow .18s}
+select:focus,input:focus,textarea:focus{outline:none; border-color:rgba(110,198,255,.55); box-shadow:0 0 0 3px rgba(110,198,255,.12)}
 textarea{min-height:90px; resize:vertical}
 label{font-size:12px; color:var(--muted); display:block; margin:10px 0 4px; font-weight:600}
-.modal-bg{position:fixed; inset:0; background:rgba(4,8,12,.75); display:none; align-items:flex-start; justify-content:center; padding:30px 16px; z-index:50; overflow-y:auto}
+.modal-bg{position:fixed; inset:0; background:rgba(4,8,14,.8); backdrop-filter:blur(3px); display:none; align-items:flex-start; justify-content:center; padding:30px 16px; z-index:50; overflow-y:auto}
 .modal-bg.on{display:flex}
-.modal{background:var(--card2); border:1px solid var(--border); border-radius:14px; padding:20px; width:100%; max-width:440px}
+.modal{background:linear-gradient(165deg,rgba(30,48,70,.97),rgba(16,28,44,.99)); border:1px solid rgba(110,198,255,.25); border-radius:16px; padding:20px; width:100%; max-width:440px; box-shadow:0 12px 40px rgba(0,0,0,.5), 0 0 24px rgba(110,198,255,.08)}
 .modal h3{font-size:16px; margin-bottom:4px}
 .modal .actions{display:flex; gap:8px; justify-content:flex-end; margin-top:16px}
 .member{display:flex; justify-content:space-between; align-items:center}
@@ -70,24 +98,29 @@ label{font-size:12px; color:var(--muted); display:block; margin:10px 0 4px; font
 .filter-row{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px}
 .filter-row select{width:auto}
 .pill-multi{display:flex; flex-wrap:wrap; gap:6px}
-.pill-multi button{background:var(--bg); border:1px solid var(--border); color:var(--muted); border-radius:20px; padding:5px 12px; font-size:13px; cursor:pointer}
-.pill-multi button.sel{background:#1e3346; color:var(--ice); border-color:var(--ice-dim)}
-.pill-multi button.selb{background:#2b2440; color:var(--purple); border-color:#4a3d70}
+.pill-multi button{background:rgba(10,18,32,.7); border:1px solid var(--border); color:var(--muted); border-radius:20px; padding:5px 13px; font-size:13px; cursor:pointer; transition:all .15s}
+.pill-multi button.sel{background:rgba(110,198,255,.16); color:var(--ice); border-color:rgba(110,198,255,.5); box-shadow:0 0 10px rgba(110,198,255,.2)}
+.pill-multi button.selb{background:rgba(183,156,255,.14); color:var(--purple); border-color:rgba(183,156,255,.5); box-shadow:0 0 10px rgba(183,156,255,.2)}
 .empty{color:var(--muted); font-size:14px; text-align:center; padding:30px 0}
 .toolbar-note{font-size:12px; color:var(--muted)}
-footer{max-width:960px; margin:0 auto; padding:16px 20px 40px; border-top:1px solid var(--border)}
+footer{max-width:960px; margin:0 auto; padding:16px 20px 44px; border-top:1px solid var(--border)}
 footer .links{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
-footer a.linkbtn{display:inline-flex; align-items:center; gap:6px; background:var(--card); border:1px solid var(--border); color:var(--ice); border-radius:10px; padding:9px 16px; font-size:14px; font-weight:600; text-decoration:none}
-footer a.linkbtn:hover{border-color:var(--ice-dim)}
-@media(max-width:600px){ nav button{padding:8px 10px; font-size:13px} .due{min-width:70px} .due .n{font-size:15px} }
+footer a.linkbtn{display:inline-flex; align-items:center; gap:6px; background:linear-gradient(165deg,rgba(27,44,64,.8),rgba(15,27,42,.9)); border:1px solid var(--border); color:var(--ice); border-radius:11px; padding:9px 16px; font-size:14px; font-weight:600; text-decoration:none; backdrop-filter:blur(6px); transition:all .18s}
+footer a.linkbtn:hover{border-color:rgba(110,198,255,.45); box-shadow:0 0 14px rgba(110,198,255,.18)}
+::-webkit-scrollbar{width:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(110,198,255,.18); border-radius:5px}
+::-webkit-scrollbar-thumb:hover{background:rgba(110,198,255,.3)}
+@media(max-width:600px){ nav button{padding:8px 12px; font-size:13px} .due{min-width:70px} .due .n{font-size:16px} }
 </style>
 </head>
 <body>
-<div id="lock" style="position:fixed;inset:0;background:var(--bg);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;overflow-y:auto">
+<div id="snow" aria-hidden="true"><i>❄</i><i>❅</i><i>❄</i><i>❆</i><i>❄</i><i>❅</i><i>❄</i><i>❆</i></div>
+<div id="lock" style="position:fixed;inset:0;background:radial-gradient(900px 600px at 50% -10%, rgba(35,84,128,.5) 0%, transparent 60%),var(--bg);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;overflow-y:auto">
   <div style="max-width:360px;width:100%">
     <div style="text-align:center">
-      <div style="font-size:40px">❄</div>
-      <h2 style="font-size:20px;margin:8px 0 4px">WOS Alliance HQ</h2>
+      <div style="font-size:44px;text-shadow:0 0 24px rgba(110,198,255,.7)">❄</div>
+      <h2 style="font-size:21px;margin:8px 0 4px;background:linear-gradient(135deg,#e8f6ff,#9ed6ff);-webkit-background-clip:text;background-clip:text;color:transparent">WOS Alliance HQ</h2>
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Duties, event countdowns & reminder messages for your Whiteout Survival alliance</p>
     </div>
     <div style="display:flex;gap:6px;margin-bottom:14px">
