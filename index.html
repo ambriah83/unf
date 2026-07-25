@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UNF United Front — Alliance HQ</title>
+<title>WOS Alliance HQ</title>
 <style>
 :root{
   --bg:#0c141d; --card:#151f2b; --card2:#1b2836; --border:#26374a;
@@ -83,18 +83,41 @@ footer a.linkbtn:hover{border-color:var(--ice-dim)}
 </style>
 </head>
 <body>
-<div id="lock" style="position:fixed;inset:0;background:var(--bg);z-index:100;display:none;align-items:center;justify-content:center;padding:20px">
-  <div style="max-width:340px;width:100%;text-align:center">
-    <div style="font-size:40px">❄</div>
-    <h2 style="font-size:20px;margin:8px 0 4px">UNF United Front</h2>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Enter the alliance passcode</p>
-    <input type="password" id="lock-pass" placeholder="Passcode" style="text-align:center;font-size:16px" onkeydown="if(event.key==='Enter')unlock()">
-    <p id="lock-err" style="font-size:12px;color:var(--red);margin-top:8px;min-height:16px"></p>
-    <button class="btn" style="width:100%;padding:11px" onclick="unlock()">Enter</button>
+<div id="lock" style="position:fixed;inset:0;background:var(--bg);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;overflow-y:auto">
+  <div style="max-width:360px;width:100%">
+    <div style="text-align:center">
+      <div style="font-size:40px">❄</div>
+      <h2 style="font-size:20px;margin:8px 0 4px">WOS Alliance HQ</h2>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Duties, event countdowns & reminder messages for your Whiteout Survival alliance</p>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:14px">
+      <button class="btn" id="lm-join" style="flex:1" onclick="lockMode('join')">Join my alliance</button>
+      <button class="btn ghost" id="lm-create" style="flex:1" onclick="lockMode('create')">Start a new one</button>
+    </div>
+    <div id="lock-join">
+      <label>Alliance code</label>
+      <input id="j-aid" placeholder="e.g. unf" autocapitalize="none">
+      <label>Passcode</label>
+      <input type="password" id="j-pass" placeholder="Passcode" onkeydown="if(event.key==='Enter')unlock()">
+      <button class="btn" style="width:100%;padding:11px;margin-top:14px" onclick="unlock()">Enter</button>
+    </div>
+    <div id="lock-create" style="display:none">
+      <label>Alliance name</label>
+      <input id="c-name" placeholder="e.g. UNF United Front">
+      <label>State #</label>
+      <input id="c-state" placeholder="e.g. 3400">
+      <label>Pick an alliance code (short, no spaces — your team types this to join)</label>
+      <input id="c-aid" placeholder="e.g. unf3400" autocapitalize="none">
+      <label>Pick a passcode (share it only with your team)</label>
+      <input id="c-pass" placeholder="At least 4 characters">
+      <button class="btn" style="width:100%;padding:11px;margin-top:14px" onclick="createAlliance()">Create alliance ❄</button>
+      <p style="font-size:11px;color:var(--muted);margin-top:8px">Starts pre-loaded with a full WOS duty template — bear traps, SvS, Foundry, onboarding & more.</p>
+    </div>
+    <p id="lock-err" style="font-size:12px;color:var(--red);margin-top:10px;min-height:16px;text-align:center"></p>
   </div>
 </div>
 <header>
-  <h1><span class="snow">❄</span> UNF United Front <span style="font-size:13px;color:var(--muted);font-weight:400">· State 3400</span></h1>
+  <h1><span class="snow">❄</span> <span id="hq-name">Alliance HQ</span> <span id="hq-state" style="font-size:13px;color:var(--muted);font-weight:400"></span></h1>
   <div class="clocks"><b id="clock-local">--:--</b><b id="clock-utc">--:--</b><span id="sync-dot"></span></div>
   <button class="btn ghost sm" style="margin-top:8px" onclick="openConverter()">🕐 UTC converter</button>
 </header>
@@ -124,13 +147,15 @@ footer a.linkbtn:hover{border-color:var(--ice-dim)}
   </div>
   <div id="team-list"></div>
   <div class="card" style="margin-top:18px">
-    <div style="font-weight:600; margin-bottom:6px">Data</div>
+    <div style="font-weight:600; margin-bottom:6px">Invite & data</div>
     <div style="display:flex; gap:8px; flex-wrap:wrap">
+      <button class="btn" onclick="copyInvite(this)">📨 Copy invite for your team</button>
       <button class="btn ghost sm" onclick="exportData()">⬇ Export backup</button>
       <button class="btn ghost sm" onclick="document.getElementById('import-file').click()">⬆ Import</button>
       <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+      <button class="btn ghost sm" onclick="switchAlliance()">Switch alliance</button>
     </div>
-    <p class="toolbar-note" style="margin-top:8px">Export a file to share your setup with another R4, or as a backup.</p>
+    <p class="toolbar-note" style="margin-top:8px">The invite copies your link, alliance code & passcode — paste it in your private team chat.</p>
   </div>
 </section>
 
@@ -150,10 +175,9 @@ function rel(n){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+n);
 function dow(w){const d=new Date();d.setHours(0,0,0,0);do{d.setDate(d.getDate()+1);}while(d.getDay()!==w);return d.toISOString();}
 function dAt(s){return new Date(s+'T00:00:00').toISOString();}
 
-const seed={
-team:[
- {id:"p1",name:"Ambria",role:"R5"},{id:"p5",name:"Lucky",role:"R4"},{id:"p7",name:"Corinne",role:"R4"}
-],
+const TEMPLATE=(nm,st)=>({
+meta:{name:nm,state:st},
+team:[],
 duties:[
  {id:"d14",cat:"Events",name:"Bear Trap 1",freq:"Every other day",primary:[],backup:[],notes:"",days:2,next:rel(1),msgs:[
    {id:"m1a",title:"Bear starting soon",body:"🐻 BEAR TRAP starts soon! Get your joining squads ready — strongest rally lead opens, everyone else JOIN don't lead. Set your march queue and be online! ❄"}]},
@@ -174,23 +198,23 @@ duties:[
  {id:"d24",cat:"Events",name:"Tundra Arms League",freq:"Per cycle",primary:[],backup:[],notes:"Track participation + remind the team",days:14,next:dow(5),msgs:[]},
  {id:"d19",cat:"Events",name:"Alliance Mobilization refresh",freq:"Monthly",primary:[],backup:[],notes:"Refresh with optimal tasks",days:28,next:dow(1),msgs:[]},
  {id:"d22",cat:"Events",name:"Mercenary Prestige",freq:"TBD",primary:[],backup:[],notes:"Set a frequency",msgs:[]},
- {id:"dOP",cat:"Events",name:"Officer Project",freq:"Per cycle",primary:[],backup:[],notes:"",days:14,next:dAt("2026-07-26"),msgs:[]},
- {id:"dFF",cat:"Events",name:"Flame & Fangs",freq:"Per cycle",primary:[],backup:[],notes:"",days:14,next:dAt("2026-07-27"),msgs:[]},
- {id:"dSD",cat:"Events",name:"SvS defend phase",freq:"Every 2 weeks",primary:[],backup:[],notes:"All hands — defend the state",days:14,next:dAt("2026-07-31"),msgs:[
+ {id:"dOP",cat:"Events",name:"Officer Project",freq:"Per cycle",primary:[],backup:[],notes:"",days:14,next:dow(0),msgs:[]},
+ {id:"dFF",cat:"Events",name:"Flame & Fangs",freq:"Per cycle",primary:[],backup:[],notes:"",days:14,next:dow(1),msgs:[]},
+ {id:"dSD",cat:"Events",name:"SvS defend phase",freq:"Every 2 weeks",primary:[],backup:[],notes:"All hands — defend the state",days:14,next:dow(5),msgs:[
    {id:"m10",title:"Defend day",body:"🛡 SVS DEFEND DAY! Shield up or bubble your castle if you can't fight. Garrison the assigned positions, keep your strongest squads home, and watch alliance chat for calls!"}]},
- {id:"dPZ",cat:"Events",name:"Prez term ends / new term",freq:"Every 2 weeks",primary:[],backup:[],notes:"Term 7/18–8/1 cycle",days:14,next:dAt("2026-08-01"),msgs:[]},
+ {id:"dPZ",cat:"Events",name:"Prez term ends / new term",freq:"Every 2 weeks",primary:[],backup:[],notes:"Aligns with the SvS cycle",days:14,next:dow(6),msgs:[]},
  {id:"d28",cat:"Strategy",name:"NAP Representatives",freq:"Ongoing",primary:[],backup:[],notes:"Alliance agreements, other-state relations",msgs:[]},
- {id:"d26",cat:"Strategy",name:"SvS alliance communication & state coordination",freq:"Per SvS",primary:[],backup:[],notes:"Handled by the NAP Representatives",days:14,next:dAt("2026-07-26"),msgs:[
+ {id:"d26",cat:"Strategy",name:"SvS alliance communication & state coordination",freq:"Per SvS",primary:[],backup:[],notes:"Handled by the NAP Representatives",days:14,next:dow(0),msgs:[
    {id:"m3",title:"SvS prep day",body:"⚔ SvS PREP DAY: save your speedups, hero XP, and shards for the RIGHT day! Check the alliance label for today's points focus before you spend ANYTHING. Every point counts — let's win this!"}]},
  {id:"d29",cat:"Strategy",name:"Recruitment",freq:"Weekly cadence",primary:[],backup:[],notes:"State promotion + posting in state chat / Discord",msgs:[
-   {id:"m11",title:"Recruitment ad",body:"❄ UNF United Front [State 3400] is recruiting! Active daily players welcome — we run 3 bear traps, organized events, and a friendly team. Apply in-game or message an R4! 🐻"}]},
+   {id:"m11",title:"Recruitment ad",body:"❄ "+nm+" [State "+st+"] is recruiting! Active daily players welcome — organized bear traps, events, and a friendly team. Apply in-game or message an R4! 🐻"}]},
  {id:"d30",cat:"Strategy",name:"Chief / Hero Gear Help",freq:"When needed",primary:[],backup:[],notes:"",msgs:[]},
  {id:"d1",cat:"HR & People",name:"Member Rank Management",freq:"Frequently",primary:[],backup:[],notes:"",msgs:[]},
  {id:"d2",cat:"HR & People",name:"Discord management (ranks, channels)",freq:"Weekly",primary:[],backup:[],notes:"",msgs:[]},
  {id:"d3",cat:"HR & People",name:"Event no-show checks (Bear, Foundry, Canyon)",freq:"Per event",primary:[],backup:[],notes:"",msgs:[]},
  {id:"d4",cat:"HR & People",name:"Farm member management",freq:"When needed",primary:[],backup:[],notes:"",msgs:[]},
  {id:"d5",cat:"HR & People",name:"Newbie Onboarding",freq:"When needed",primary:[],backup:[],notes:"Checklist: welcome text → verbal agreement → add to Read-Only chat → assign bear + spot → teach how we play bear → remove leavers from chats",msgs:[
-   {id:"m5",title:"Newbie welcome",body:"👋 Welcome to UNF United Front! Please read the alliance notices, join our Discord, and message an R4 for your bear trap spot. Any questions just ask in chat — we don't bite (the bear does). ❄🐻"}]},
+   {id:"m5",title:"Newbie welcome",body:"👋 Welcome to "+nm+"! Please read the alliance notices, join our Discord, and message an R4 for your bear trap spot. Any questions just ask in chat — we don't bite (the bear does). ❄🐻"}]},
  {id:"d6",cat:"HR & People",name:"Comms & Notices",freq:"Daily / weekly",primary:[],backup:[],notes:"Weekly alliance notices + daily event progress labels + delete stale notices & labels",msgs:[
    {id:"m4",title:"Tech donation push",body:"🔬 TECH REMINDER: donate to the flagged tech (check the label)! Daily donations = alliance-wide buffs for everyone. Takes 30 seconds — do it when you collect your chests. 💪"}]},
  {id:"d7",cat:"HR & People",name:"Gift codes",freq:"When needed",primary:[],backup:[],notes:"Redeem link is in the footer below",msgs:[
@@ -203,23 +227,25 @@ duties:[
 ],
 links:[
  {id:"l1",label:"🎁 Redeem gift codes",url:"https://wos-giftcode.centurygame.com/"},
- {id:"l2",label:"💬 State 3400 Discord",url:""}
-]};
+ {id:"l2",label:"💬 Alliance Discord",url:""}
+]});
 
 const SYNC={
   rpc:'https://pxzkbrgmosykxmkevgek.supabase.co/rest/v1/rpc/',
   key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4emticmdtb3N5a3hta2V2Z2VrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ5OTk5MjEsImV4cCI6MjEwMDU3NTkyMX0.KAOw0C45CLlVUeNPLubh6nQUQlpDNYCG5xhHMU8YQ3E'
 };
 let PASS=localStorage.getItem('wos-pass')||'';
+let AID=localStorage.getItem('wos-aid')||'';
 let S=load();
 let TZ=localStorage.getItem('wos-tz')||Intl.DateTimeFormat().resolvedOptions().timeZone;
 let lastSynced=0, syncTimer=null;
+function cacheKey(){return 'wos-hq-'+(AID||'none');}
 function load(){
-  try{const raw=localStorage.getItem('wos-hq-v10');if(raw)return JSON.parse(raw);}catch(e){}
-  return JSON.parse(JSON.stringify(seed));
+  try{const raw=localStorage.getItem('wos-hq-'+(localStorage.getItem('wos-aid')||'none'));if(raw)return JSON.parse(raw);}catch(e){}
+  return TEMPLATE('','');
 }
 function save(){
-  localStorage.setItem('wos-hq-v10',JSON.stringify(S));
+  localStorage.setItem(cacheKey(),JSON.stringify(S));
   clearTimeout(syncTimer);
   syncTimer=setTimeout(pushRemote,800);
 }
@@ -229,39 +255,74 @@ function setSyncUI(ok){
   else{el.textContent='● offline';el.style.color='var(--amber)';}
 }
 function syncHeaders(){return {apikey:SYNC.key,Authorization:'Bearer '+SYNC.key,'Content-Type':'application/json'};}
+function lockMode(m){
+  document.getElementById('lock-join').style.display=m==='join'?'block':'none';
+  document.getElementById('lock-create').style.display=m==='create'?'block':'none';
+  document.getElementById('lm-join').className='btn'+(m==='join'?'':' ghost');
+  document.getElementById('lm-create').className='btn'+(m==='create'?'':' ghost');
+  document.getElementById('lock-err').textContent='';
+}
 function showLock(msg){
   document.getElementById('lock').style.display='flex';
   document.getElementById('lock-err').textContent=msg||'';
 }
 function hideLock(){document.getElementById('lock').style.display='none';}
 async function unlock(){
-  const p=document.getElementById('lock-pass').value.trim();
-  if(!p)return;
+  const a=document.getElementById('j-aid').value.trim().toLowerCase();
+  const p=document.getElementById('j-pass').value.trim();
+  if(!a||!p){document.getElementById('lock-err').textContent='Enter your alliance code and passcode';return;}
   document.getElementById('lock-err').textContent='';
-  const ok=await pullRemote(p);
+  const ok=await pullRemote(p,a);
   if(ok){
-    PASS=p;localStorage.setItem('wos-pass',p);
-    hideLock();
+    PASS=p;AID=a;
+    localStorage.setItem('wos-pass',p);localStorage.setItem('wos-aid',a);
+    localStorage.setItem(cacheKey(),JSON.stringify(S));
+    hideLock();renderAll();
   }else{
-    document.getElementById('lock-err').textContent='Wrong passcode — ask your R5';
+    document.getElementById('lock-err').textContent='Wrong alliance code or passcode';
   }
 }
+async function createAlliance(){
+  const nm=document.getElementById('c-name').value.trim();
+  const st=document.getElementById('c-state').value.trim();
+  const a=document.getElementById('c-aid').value.trim().toLowerCase();
+  const p=document.getElementById('c-pass').value.trim();
+  const err=document.getElementById('lock-err');
+  if(!nm||!st||!a||!p){err.textContent='Fill in all four fields';return;}
+  if(!/^[a-z0-9-]{2,24}$/.test(a)){err.textContent='Alliance code: 2–24 letters, numbers, or dashes only';return;}
+  if(p.length<4){err.textContent='Passcode needs at least 4 characters';return;}
+  err.textContent='';
+  const fresh=TEMPLATE(nm,st);
+  try{
+    const r=await fetch(SYNC.rpc+'create_alliance',{method:'POST',headers:syncHeaders(),body:JSON.stringify({aid:a,pass:p,new_data:fresh})});
+    if(!r.ok){
+      const body=await r.json().catch(()=>({}));
+      err.textContent=(body.message||'').includes('taken')?'That alliance code is taken — pick another':'Could not create — check the fields and try again';
+      return;
+    }
+    S=fresh;AID=a;PASS=p;
+    localStorage.setItem('wos-aid',a);localStorage.setItem('wos-pass',p);
+    localStorage.setItem(cacheKey(),JSON.stringify(S));
+    lastSynced=Date.now();
+    hideLock();renderAll();
+  }catch(e){err.textContent='Connection problem — try again';}
+}
 async function pushRemote(){
-  if(!PASS)return;
+  if(!PASS||!AID)return;
   try{
     const now=new Date().toISOString();
-    const r=await fetch(SYNC.rpc+'put_state',{method:'POST',headers:syncHeaders(),body:JSON.stringify({pass:PASS,new_data:S,ts:now})});
+    const r=await fetch(SYNC.rpc+'put_state',{method:'POST',headers:syncHeaders(),body:JSON.stringify({aid:AID,pass:PASS,new_data:S,ts:now})});
     if(r.status===400||r.status===401||r.status===403){PASS='';localStorage.removeItem('wos-pass');showLock('Passcode changed — enter the new one');return;}
     if(!r.ok)throw new Error(r.status);
     lastSynced=new Date(now).getTime();
     setSyncUI(true);
   }catch(e){setSyncUI(false);}
 }
-async function pullRemote(tryPass){
-  const p=tryPass||PASS;
-  if(!p){showLock();return false;}
+async function pullRemote(tryPass,tryAid){
+  const p=tryPass||PASS, a=tryAid||AID;
+  if(!p||!a){showLock();return false;}
   try{
-    const r=await fetch(SYNC.rpc+'get_state',{method:'POST',headers:syncHeaders(),body:JSON.stringify({pass:p})});
+    const r=await fetch(SYNC.rpc+'get_state',{method:'POST',headers:syncHeaders(),body:JSON.stringify({aid:a,pass:p})});
     if(r.status===400||r.status===401||r.status===403){
       if(!tryPass){PASS='';localStorage.removeItem('wos-pass');showLock('Passcode changed — enter the new one');}
       return false;
@@ -272,7 +333,7 @@ async function pullRemote(tryPass){
       const remoteTime=new Date(row.updated_at).getTime();
       if(remoteTime>lastSynced&&!document.getElementById('modal-bg').classList.contains('on')){
         S=row.data;
-        localStorage.setItem('wos-hq-v10',JSON.stringify(S));
+        localStorage.setItem('wos-hq-'+a,JSON.stringify(S));
         lastSynced=remoteTime;
         renderAll();
       }
@@ -543,8 +604,30 @@ function delMember(id,btn){
   save();closeModal();renderTeam();renderDuties();
 }
 
+function renderHeader(){
+  const m=S.meta||{};
+  document.getElementById('hq-name').textContent=m.name||'Alliance HQ';
+  document.getElementById('hq-state').textContent=m.state?'· State '+m.state:'';
+  document.title=(m.name?m.name+' — ':'')+'WOS Alliance HQ';
+}
+function copyInvite(btn){
+  const m=S.meta||{};
+  const txt='❄ '+(m.name||'Our alliance')+' HQ — duties, events & reminders\n'+
+    'Link: https://ambriah83.github.io/wos-hq/?a='+AID+'\n'+
+    'Alliance code: '+AID+'\nPasscode: '+PASS;
+  navigator.clipboard.writeText(txt).then(()=>{
+    btn.textContent='✓ Copied — paste it in your team chat';
+    setTimeout(()=>{btn.textContent='📨 Copy invite for your team';},2500);
+  });
+}
+function switchAlliance(){
+  AID='';PASS='';
+  localStorage.removeItem('wos-aid');localStorage.removeItem('wos-pass');
+  document.getElementById('j-aid').value='';document.getElementById('j-pass').value='';
+  lockMode('join');showLock();
+}
 function renderLinks(){
-  if(!S.links)S.links=JSON.parse(JSON.stringify(seed.links));
+  if(!S.links)S.links=TEMPLATE('','').links;
   document.getElementById('links-bar').innerHTML=S.links.map(l=>
     `<a class="linkbtn" href="${esc(l.url||'#')}" target="_blank" rel="noopener" ${l.url?'':'onclick="event.preventDefault();openLinkEdit(\''+l.id+'\')" title="Tap to set the URL"'}>${esc(l.label)}${l.url?'':' (set link)'}</a>`
   ).join('')+`<button class="btn ghost sm" onclick="openLinkEdit()">+ Add link</button>`;
@@ -579,8 +662,11 @@ function importData(ev){
   r.onload=()=>{try{S=JSON.parse(r.result);save();renderAll();}catch(e){}};
   r.readAsText(f);
 }
-function renderAll(){renderDuties();renderTeam();renderLinks();}
-renderAll();tickClocks();pullRemote();
+function renderAll(){renderHeader();renderDuties();renderTeam();renderLinks();}
+renderAll();tickClocks();
+const urlAid=new URLSearchParams(location.search).get('a');
+if(urlAid&&!AID)document.getElementById('j-aid').value=urlAid.toLowerCase();
+if(AID&&PASS){pullRemote();}else{showLock();}
 </script>
 </body>
 </html>
