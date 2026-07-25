@@ -84,8 +84,8 @@ footer a.linkbtn:hover{border-color:var(--ice-dim)}
 </head>
 <body>
 <header>
-  <h1><span class="snow">❄</span> UNF United Front <span style="font-size:13px;color:var(--muted);font-weight:400">· Alliance HQ · State 3400</span></h1>
-  <div class="clocks"><span>Your time: <b id="clock-local">--:--</b></span><span>UTC (server): <b id="clock-utc">--:--</b></span><span id="sync-dot" style="color:var(--muted)">● connecting…</span></div>
+  <h1><span class="snow">❄</span> UNF United Front <span style="font-size:13px;color:var(--muted);font-weight:400">· State 3400</span></h1>
+  <div class="clocks"><b id="clock-local">--:--</b><b id="clock-utc">--:--</b><span id="sync-dot"></span></div>
   <button class="btn ghost sm" style="margin-top:8px" onclick="openConverter()">🕐 UTC converter</button>
 </header>
 <nav>
@@ -215,8 +215,8 @@ function save(){
 }
 function setSyncUI(ok){
   const el=document.getElementById('sync-dot');
-  if(ok){el.textContent='● shared — live';el.style.color='var(--green)';}
-  else{el.textContent='● offline — saved on this device';el.style.color='var(--amber)';}
+  if(ok){el.textContent='';}
+  else{el.textContent='● offline';el.style.color='var(--amber)';}
 }
 function syncHeaders(){return {apikey:SYNC.key,Authorization:'Bearer '+SYNC.key,'Content-Type':'application/json'};}
 async function pushRemote(){
@@ -260,8 +260,8 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
 
 function tickClocks(){
   const now=new Date();
-  document.getElementById('clock-local').textContent=now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',timeZone:TZ})+' '+tzAbbr(TZ);
-  document.getElementById('clock-utc').textContent=now.toUTCString().slice(17,22);
+  document.getElementById('clock-local').textContent=tzAbbr(TZ)+': '+now.toLocaleTimeString([],{hour:'numeric',minute:'2-digit',timeZone:TZ});
+  document.getElementById('clock-utc').textContent='UTC: '+now.toUTCString().slice(17,22);
 }
 setInterval(tickClocks,10000);
 
