@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UNF United Front — Alliance HQ</title>
+<style>
+:root{
+  --bg:#0c141d; --card:#151f2b; --card2:#1b2836; --border:#26374a;
+  --text:#e8f1f8; --muted:#8aa3b8; --ice:#6ec6ff; --ice-dim:#2b5d80;
+  --green:#5dd39e; --amber:#ffc85c; --red:#ff7a7a; --purple:#b79cff;
+}
+*{box-sizing:border-box; margin:0; padding:0}
+body{background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; min-height:100vh}
+header{padding:16px 20px 0; max-width:960px; margin:0 auto}
+h1{font-size:22px; letter-spacing:.5px}
+h1 .snow{color:var(--ice)}
+.clocks{display:flex; gap:16px; margin-top:6px; font-size:13px; color:var(--muted)}
+.clocks b{color:var(--ice); font-weight:600}
+.utc-conv{display:flex; gap:8px; align-items:center; margin-top:10px; font-size:13px; flex-wrap:wrap}
+.utc-conv input{width:auto; padding:4px 8px; font-size:13px}
+.utc-conv b{color:var(--green); font-size:15px}
+nav{display:flex; gap:6px; max-width:960px; margin:14px auto 0; padding:0 20px; flex-wrap:wrap}
+nav button{background:var(--card); color:var(--muted); border:1px solid var(--border); border-radius:10px 10px 0 0; padding:10px 16px; font-size:14px; cursor:pointer; font-weight:600}
+nav button.on{background:var(--card2); color:var(--ice); border-bottom-color:var(--card2)}
+main{max-width:960px; margin:0 auto; padding:16px 20px 40px}
+.tab{display:none}
+.tab.on{display:block}
+.bar{display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap}
+.bar h2{font-size:17px}
+.btn{background:var(--ice-dim); color:#fff; border:none; border-radius:8px; padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer}
+.btn:hover{background:#377199}
+.btn.ghost{background:transparent; border:1px solid var(--border); color:var(--muted)}
+.btn.sm{padding:4px 10px; font-size:12px}
+.btn.danger{background:transparent; border:1px solid #5b2e2e; color:var(--red)}
+.card{background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px 14px; margin-bottom:10px}
+.cat{font-size:12px; text-transform:uppercase; letter-spacing:1.5px; color:var(--ice); margin:18px 0 8px; font-weight:700}
+.duty-top{display:flex; justify-content:space-between; gap:10px; align-items:flex-start}
+.duty-name{font-weight:600; font-size:15px}
+.duty-freq{font-size:12px; color:var(--muted); margin-top:2px}
+.chips{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; align-items:center}
+.chip{font-size:12px; padding:3px 10px; border-radius:20px; background:#1e3346; color:var(--ice); font-weight:600}
+.chip.backup{background:#2b2440; color:var(--purple)}
+.chip.warn{background:#3d2c14; color:var(--amber)}
+.chip.norm{background:#20303c; color:var(--muted); font-weight:400}
+.chip-label{font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; align-self:center; font-weight:700}
+.row-actions{display:flex; gap:6px; flex-shrink:0; align-items:flex-start}
+.due{text-align:right; min-width:86px}
+.due .n{font-size:18px; font-weight:700; color:var(--ice); line-height:1.1}
+.due .n.now{color:var(--green)}
+.due .n.soon{color:var(--amber)}
+.due .d{font-size:11px; color:var(--muted)}
+.msgs{margin-top:10px; border-top:1px dashed var(--border); padding-top:8px; display:flex; flex-direction:column; gap:6px}
+.msgs-label{font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; font-weight:700}
+.msg-row{display:flex; align-items:center; gap:8px}
+.msg-row .t{font-size:13px; color:var(--text); cursor:pointer; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.msg-row .t:hover{color:var(--ice)}
+.copy-ok{color:var(--green)!important}
+select,input,textarea{background:var(--bg); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:14px; font-family:inherit; width:100%}
+textarea{min-height:90px; resize:vertical}
+label{font-size:12px; color:var(--muted); display:block; margin:10px 0 4px; font-weight:600}
+.modal-bg{position:fixed; inset:0; background:rgba(4,8,12,.75); display:none; align-items:flex-start; justify-content:center; padding:30px 16px; z-index:50; overflow-y:auto}
+.modal-bg.on{display:flex}
+.modal{background:var(--card2); border:1px solid var(--border); border-radius:14px; padding:20px; width:100%; max-width:440px}
+.modal h3{font-size:16px; margin-bottom:4px}
+.modal .actions{display:flex; gap:8px; justify-content:flex-end; margin-top:16px}
+.member{display:flex; justify-content:space-between; align-items:center}
+.member .nm{font-weight:600}
+.member .duties-count{font-size:12px; color:var(--muted)}
+.filter-row{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px}
+.filter-row select{width:auto}
+.pill-multi{display:flex; flex-wrap:wrap; gap:6px}
+.pill-multi button{background:var(--bg); border:1px solid var(--border); color:var(--muted); border-radius:20px; padding:5px 12px; font-size:13px; cursor:pointer}
+.pill-multi button.sel{background:#1e3346; color:var(--ice); border-color:var(--ice-dim)}
+.pill-multi button.selb{background:#2b2440; color:var(--purple); border-color:#4a3d70}
+.empty{color:var(--muted); font-size:14px; text-align:center; padding:30px 0}
+.toolbar-note{font-size:12px; color:var(--muted)}
+footer{max-width:960px; margin:0 auto; padding:16px 20px 40px; border-top:1px solid var(--border)}
+footer .links{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+footer a.linkbtn{display:inline-flex; align-items:center; gap:6px; background:var(--card); border:1px solid var(--border); color:var(--ice); border-radius:10px; padding:9px 16px; font-size:14px; font-weight:600; text-decoration:none}
+footer a.linkbtn:hover{border-color:var(--ice-dim)}
+@media(max-width:600px){ nav button{padding:8px 10px; font-size:13px} .due{min-width:70px} .due .n{font-size:15px} }
+</style>
+</head>
+<body>
+<header>
+  <h1><span class="snow">❄</span> UNF United Front <span style="font-size:13px;color:var(--muted);font-weight:400">· Alliance HQ · State 3400</span></h1>
+  <div class="clocks"><span>Your time: <b id="clock-local">--:--</b></span><span>UTC (server): <b id="clock-utc">--:--</b></span><span id="sync-dot" style="color:var(--muted)">● connecting…</span></div>
+  <button class="btn ghost sm" style="margin-top:8px" onclick="openConverter()">🕐 UTC converter</button>
+</header>
+<nav>
+  <button class="on" data-tab="duties">📋 Tasks</button>
+  <button data-tab="team">👥 Team</button>
+</nav>
+<main>
+
+<section class="tab on" id="tab-duties">
+  <div class="bar">
+    <h2>Task allocation</h2>
+    <button class="btn" onclick="openDuty()">+ Add task</button>
+  </div>
+  <div class="filter-row">
+    <select id="duty-filter" onchange="renderDuties()"><option value="">Everyone's tasks</option></select>
+    <span class="toolbar-note" id="duty-count"></span>
+  </div>
+  <p class="toolbar-note" style="margin-bottom:10px">Each task shows who's on it, when the next one is, and its saved reminder messages — tap 📋 to copy a message, tap its title to edit it.</p>
+  <div id="duty-list"></div>
+</section>
+
+<section class="tab" id="tab-team">
+  <div class="bar">
+    <h2>R4 / R5 team</h2>
+    <button class="btn" onclick="openMember()">+ Add person</button>
+  </div>
+  <div id="team-list"></div>
+  <div class="card" style="margin-top:18px">
+    <div style="font-weight:600; margin-bottom:6px">Data</div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap">
+      <button class="btn ghost sm" onclick="exportData()">⬇ Export backup</button>
+      <button class="btn ghost sm" onclick="document.getElementById('import-file').click()">⬆ Import</button>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+    </div>
+    <p class="toolbar-note" style="margin-top:8px">Export a file to share your setup with another R4, or as a backup.</p>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="links" id="links-bar"></div>
+</footer>
+
+<div class="modal-bg" id="modal-bg" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+const CATS=["Events","Strategy","HR & People","Land"];
+function rel(n){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+n);return d.toISOString();}
+function dow(w){const d=new Date();d.setHours(0,0,0,0);do{d.setDate(d.getDate()+1);}while(d.getDay()!==w);return d.toISOString();}
+function dAt(s){return new Date(s+'T00:00:00').toISOString();}
+
+const seed={
+team:[
+ {id:"p1",name:"Ambria",role:"R5"},{id:"p5",name:"Lucky",role:"R4"},{id:"p7",name:"Corinne",role:"R4"}
+],
+duties:[
+ {id:"d14",cat:"Events",name:"Bear Trap 1",freq:"Every other day",primary:[],backup:[],notes:"",days:2,next:rel(1),msgs:[
+   {id:"m1a",title:"Bear starting soon",body:"🐻 BEAR TRAP starts soon! Get your joining squads ready — strongest rally lead opens, everyone else JOIN don't lead. Set your march queue and be online! ❄"}]},
+ {id:"d15",cat:"Events",name:"Bear Trap 2",freq:"Every other day",primary:[],backup:[],notes:"",days:2,next:rel(1),msgs:[
+   {id:"m1b",title:"Bear starting soon",body:"🐻 BEAR TRAP starts soon! Get your joining squads ready — strongest rally lead opens, everyone else JOIN don't lead. Set your march queue and be online! ❄"}]},
+ {id:"d16",cat:"Events",name:"Bear Trap 3",freq:"Every other day",primary:[],backup:[],notes:"",days:2,next:rel(1),msgs:[
+   {id:"m1c",title:"Bear starting soon",body:"🐻 BEAR TRAP starts soon! Get your joining squads ready — strongest rally lead opens, everyone else JOIN don't lead. Set your march queue and be online! ❄"}]},
+ {id:"d23",cat:"Events",name:"Crazy Joe",freq:"Every other Tue & Thu",primary:[],backup:[],notes:"",days:3.5,next:dow(2),msgs:[
+   {id:"m6",title:"Crazy Joe tonight",body:"🤪 CRAZY JOE tonight! Be ONLINE and in the alliance area. Reinforce HQ and each other — every wave counts. Check the label for our defense plan!"}]},
+ {id:"d17",cat:"Events",name:"Alliance Championship",freq:"Weekly",primary:[],backup:[],notes:"Mon–Wed registration, Thu–Sat lane management",days:7,next:dow(1),msgs:[
+   {id:"m7",title:"Championship registration",body:"🏆 ALLIANCE CHAMPIONSHIP registration is open Mon–Wed! Register now so we can set the lanes. Check your lane assignment before Thursday!"}]},
+ {id:"d18",cat:"Events",name:"Fortress Battle cycle",freq:"Wed–Sat",primary:[],backup:[],notes:"Register Wed–Thu → Task Calendar → check participants + rewards Fri PM–Sat AM",days:7,next:dow(3),msgs:[
+   {id:"m8",title:"Fortress registration",body:"🏰 FORTRESS BATTLE registration is open Wed–Thu! Register NOW if you can fight — participation is checked and rewards go to those who show up."}]},
+ {id:"d20",cat:"Events",name:"Foundry Battle",freq:"Every 2 weeks",primary:[],backup:[],notes:"Mon–Tue voting, Wed–Thu registration, Sun battle",days:14,next:dow(0),msgs:[
+   {id:"m2",title:"Foundry registration",body:"⚒ FOUNDRY BATTLE registration is OPEN (Wed–Thu). Register NOW so we can set legions — if you don't register you can't fight, and no-shows are checked. Vote Mon–Tue if you haven't!"}]},
+ {id:"d21",cat:"Events",name:"Canyon Clash",freq:"Monthly",primary:[],backup:[],notes:"Mon–Tue voting, Wed–Thu registration, Sat battle",days:28,next:dow(6),msgs:[
+   {id:"m9",title:"Canyon registration",body:"⛰ CANYON CLASH registration is open Wed–Thu! Sign up now — legion spots get set from registrations. Battle is Saturday, be there!"}]},
+ {id:"d24",cat:"Events",name:"Tundra Arms League",freq:"Per cycle",primary:[],backup:[],notes:"Track participation + remind the team",days:14,next:dow(5),msgs:[]},
+ {id:"d19",cat:"Events",name:"Alliance Mobilization refresh",freq:"Monthly",primary:[],backup:[],notes:"Refresh with optimal tasks",days:28,next:dow(1),msgs:[]},
+ {id:"d22",cat:"Events",name:"Mercenary Prestige",freq:"TBD",primary:[],backup:[],notes:"Set a frequency",msgs:[]},
+ {id:"dOP",cat:"Events",name:"Officer Project",freq:"Per cycle",primary:[],backup:[],notes:"",days:14,next:dAt("2026-07-26"),msgs:[]},
+ {id:"dFF",cat:"Events",name:"Flame & Fangs",freq:"Per cycle",primary:[],backup:[],notes:"",days:14,next:dAt("2026-07-27"),msgs:[]},
+ {id:"dSD",cat:"Events",name:"SvS defend phase",freq:"Every 2 weeks",primary:[],backup:[],notes:"All hands — defend the state",days:14,next:dAt("2026-07-31"),msgs:[
+   {id:"m10",title:"Defend day",body:"🛡 SVS DEFEND DAY! Shield up or bubble your castle if you can't fight. Garrison the assigned positions, keep your strongest squads home, and watch alliance chat for calls!"}]},
+ {id:"dPZ",cat:"Events",name:"Prez term ends / new term",freq:"Every 2 weeks",primary:[],backup:[],notes:"Term 7/18–8/1 cycle",days:14,next:dAt("2026-08-01"),msgs:[]},
+ {id:"d28",cat:"Strategy",name:"NAP Representatives",freq:"Ongoing",primary:[],backup:[],notes:"Alliance agreements, other-state relations",msgs:[]},
+ {id:"d26",cat:"Strategy",name:"SvS alliance communication & state coordination",freq:"Per SvS",primary:[],backup:[],notes:"Handled by the NAP Representatives",days:14,next:dAt("2026-07-26"),msgs:[
+   {id:"m3",title:"SvS prep day",body:"⚔ SvS PREP DAY: save your speedups, hero XP, and shards for the RIGHT day! Check the alliance label for today's points focus before you spend ANYTHING. Every point counts — let's win this!"}]},
+ {id:"d29",cat:"Strategy",name:"Recruitment",freq:"Weekly cadence",primary:[],backup:[],notes:"State promotion + posting in state chat / Discord",msgs:[
+   {id:"m11",title:"Recruitment ad",body:"❄ UNF United Front [State 3400] is recruiting! Active daily players welcome — we run 3 bear traps, organized events, and a friendly team. Apply in-game or message an R4! 🐻"}]},
+ {id:"d30",cat:"Strategy",name:"Chief / Hero Gear Help",freq:"When needed",primary:[],backup:[],notes:"",msgs:[]},
+ {id:"d1",cat:"HR & People",name:"Member Rank Management",freq:"Frequently",primary:[],backup:[],notes:"",msgs:[]},
+ {id:"d2",cat:"HR & People",name:"Discord management (ranks, channels)",freq:"Weekly",primary:[],backup:[],notes:"",msgs:[]},
+ {id:"d3",cat:"HR & People",name:"Event no-show checks (Bear, Foundry, Canyon)",freq:"Per event",primary:[],backup:[],notes:"",msgs:[]},
+ {id:"d4",cat:"HR & People",name:"Farm member management",freq:"When needed",primary:[],backup:[],notes:"",msgs:[]},
+ {id:"d5",cat:"HR & People",name:"Newbie Onboarding",freq:"When needed",primary:[],backup:[],notes:"Checklist: welcome text → verbal agreement → add to Read-Only chat → assign bear + spot → teach how we play bear → remove leavers from chats",msgs:[
+   {id:"m5",title:"Newbie welcome",body:"👋 Welcome to UNF United Front! Please read the alliance notices, join our Discord, and message an R4 for your bear trap spot. Any questions just ask in chat — we don't bite (the bear does). ❄🐻"}]},
+ {id:"d6",cat:"HR & People",name:"Comms & Notices",freq:"Daily / weekly",primary:[],backup:[],notes:"Weekly alliance notices + daily event progress labels + delete stale notices & labels",msgs:[
+   {id:"m4",title:"Tech donation push",body:"🔬 TECH REMINDER: donate to the flagged tech (check the label)! Daily donations = alliance-wide buffs for everyone. Takes 30 seconds — do it when you collect your chests. 💪"}]},
+ {id:"d7",cat:"HR & People",name:"Gift codes",freq:"When needed",primary:[],backup:[],notes:"Redeem link is in the footer below",msgs:[
+   {id:"m12",title:"New gift code",body:"🎁 NEW GIFT CODE: [paste code here] — redeem it at the link in our alliance HQ app or in-game (Chief profile → Settings → Gift Code). Don't miss free stuff!"}]},
+ {id:"d9",cat:"HR & People",name:"Plan fun events (Discord / meetups)",freq:"From time to time",primary:[],backup:[],notes:"Everyone — but give it a champion!",msgs:[]},
+ {id:"d10",cat:"Land",name:"Reset facilities",freq:"Every 3 days",primary:[],backup:[],notes:"",days:3,next:rel(2),msgs:[]},
+ {id:"d11",cat:"Land",name:"Banners",freq:"When needed",primary:[],backup:[],notes:"",msgs:[]},
+ {id:"d12",cat:"Land",name:"Bear spot setting",freq:"Monthly (post-SvS)",primary:[],backup:[],notes:"Based on Foundry battle power after SvS",msgs:[]},
+ {id:"d13",cat:"Land",name:"Place resource nodes",freq:"Daily",primary:[],backup:[],notes:"Everyone",msgs:[]}
+],
+links:[
+ {id:"l1",label:"🎁 Redeem gift codes",url:"https://wos-giftcode.centurygame.com/"},
+ {id:"l2",label:"💬 State 3400 Discord",url:""}
+]};
+
+const SYNC={
+  url:'https://pxzkbrgmosykxmkevgek.supabase.co/rest/v1/alliance_state',
+  key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4emticmdtb3N5a3hta2V2Z2VrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ5OTk5MjEsImV4cCI6MjEwMDU3NTkyMX0.KAOw0C45CLlVUeNPLubh6nQUQlpDNYCG5xhHMU8YQ3E',
+  id:'unf'
+};
+let S=load();
+let TZ=localStorage.getItem('wos-tz')||Intl.DateTimeFormat().resolvedOptions().timeZone;
+let lastSynced=0, syncTimer=null;
+function load(){
+  try{const raw=localStorage.getItem('wos-hq-v10');if(raw)return JSON.parse(raw);}catch(e){}
+  return JSON.parse(JSON.stringify(seed));
+}
+function save(){
+  localStorage.setItem('wos-hq-v10',JSON.stringify(S));
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(pushRemote,800);
+}
+function setSyncUI(ok){
+  const el=document.getElementById('sync-dot');
+  if(ok){el.textContent='● shared — live';el.style.color='var(--green)';}
+  else{el.textContent='● offline — saved on this device';el.style.color='var(--amber)';}
+}
+function syncHeaders(){return {apikey:SYNC.key,Authorization:'Bearer '+SYNC.key,'Content-Type':'application/json'};}
+async function pushRemote(){
+  try{
+    const now=new Date().toISOString();
+    const r=await fetch(SYNC.url,{method:'POST',headers:{...syncHeaders(),Prefer:'resolution=merge-duplicates'},body:JSON.stringify({id:SYNC.id,data:S,updated_at:now})});
+    if(!r.ok)throw new Error(r.status);
+    lastSynced=new Date(now).getTime();
+    setSyncUI(true);
+  }catch(e){setSyncUI(false);}
+}
+async function pullRemote(){
+  try{
+    const r=await fetch(SYNC.url+'?id=eq.'+SYNC.id+'&select=data,updated_at',{headers:syncHeaders()});
+    if(!r.ok)throw new Error(r.status);
+    const rows=await r.json();
+    if(rows.length){
+      const remoteTime=new Date(rows[0].updated_at).getTime();
+      if(remoteTime>lastSynced&&!document.getElementById('modal-bg').classList.contains('on')){
+        S=rows[0].data;
+        localStorage.setItem('wos-hq-v10',JSON.stringify(S));
+        lastSynced=remoteTime;
+        renderAll();
+      }
+      lastSynced=Math.max(lastSynced,remoteTime);
+      setSyncUI(true);
+    }else{pushRemote();}
+  }catch(e){setSyncUI(false);}
+}
+setInterval(pullRemote,20000);
+function uid(){return 'x'+Math.random().toString(36).slice(2,9);}
+function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function val(id){return document.getElementById(id).value.trim();}
+
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+  document.getElementById('tab-'+b.dataset.tab).classList.add('on');
+});
+
+function tickClocks(){
+  const now=new Date();
+  document.getElementById('clock-local').textContent=now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',timeZone:TZ})+' '+tzAbbr(TZ);
+  document.getElementById('clock-utc').textContent=now.toUTCString().slice(17,22);
+}
+setInterval(tickClocks,10000);
+
+function tzAbbr(z){
+  try{return new Intl.DateTimeFormat('en-US',{timeZone:z,timeZoneName:'short'}).formatToParts(new Date()).find(p=>p.type==='timeZoneName').value.replace(/DT$/,'ST');}
+  catch(e){return z;}
+}
+function openConverter(){
+  showModal(`<h3>🕐 UTC converter</h3>
+    <p class="toolbar-note" style="margin-top:4px">The game runs on UTC (server time). Enter a server time to see it in your timezone.</p>
+    <label>Server (UTC) time</label>
+    <div style="display:flex;gap:6px;align-items:center">
+      <select id="conv-h" onchange="convertUTC()" style="width:auto"></select>
+      <span style="color:var(--muted)">:</span>
+      <select id="conv-m" onchange="convertUTC()" style="width:auto"></select>
+    </div>
+    <label>Your timezone</label>
+    <select id="tz-sel" onchange="tzChanged()" style="width:auto"></select>
+    <div style="margin-top:16px;font-size:14px;color:var(--muted)">That's <b id="conv-out" style="color:var(--green);font-size:20px">--:--</b></div>
+    <div class="actions"><button class="btn" onclick="closeModal()">Done</button></div>`);
+  const hs=document.getElementById('conv-h'), ms=document.getElementById('conv-m'), ts=document.getElementById('tz-sel');
+  hs.innerHTML=Array.from({length:24},(_,i)=>`<option>${String(i).padStart(2,'0')}</option>`).join('');
+  ms.innerHTML=Array.from({length:12},(_,i)=>`<option>${String(i*5).padStart(2,'0')}</option>`).join('');
+  hs.value=String(new Date().getUTCHours()).padStart(2,'0');
+  const zones=['America/New_York','America/Chicago','America/Denver','America/Phoenix','America/Los_Angeles','America/Anchorage','Pacific/Honolulu','America/Mexico_City','America/Sao_Paulo','Europe/London','Europe/Paris','Europe/Berlin','Europe/Kyiv','Asia/Manila','Asia/Tokyo','Asia/Shanghai','Asia/Kolkata','Australia/Sydney','Pacific/Auckland','UTC'];
+  if(!zones.includes(TZ))zones.unshift(TZ);
+  ts.innerHTML=zones.map(z=>`<option value="${z}" ${z===TZ?'selected':''}>${tzAbbr(z)}</option>`).join('');
+  convertUTC();
+}
+function tzChanged(){
+  TZ=document.getElementById('tz-sel').value;
+  localStorage.setItem('wos-tz',TZ);
+  tickClocks();convertUTC();
+}
+function convertUTC(){
+  const h=Number(document.getElementById('conv-h').value), m=Number(document.getElementById('conv-m').value);
+  const d=new Date();
+  d.setUTCHours(h,m,0,0);
+  document.getElementById('conv-out').textContent=d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',timeZone:TZ})+' '+tzAbbr(TZ);
+}
+
+function rollSchedules(){
+  const today0=new Date();today0.setHours(0,0,0,0);
+  S.duties.forEach(d=>{
+    if(!d.next||!d.days)return;
+    let t=new Date(d.next);t.setHours(0,0,0,0);
+    const step=Math.round(d.days*864e5);
+    while(t<today0){t=new Date(t.getTime()+step);t.setHours(0,0,0,0);}
+    d.next=t.toISOString();
+  });
+  save();
+}
+
+function dueBadge(d){
+  if(!d.next||!d.days)return '';
+  const today0=new Date();today0.setHours(0,0,0,0);
+  const t=new Date(d.next);t.setHours(0,0,0,0);
+  const dd=Math.round((t-today0)/864e5);
+  const n=dd===0?'TODAY':dd===1?'1 day':dd+' days';
+  const cls=dd===0?'now':dd===1?'soon':'';
+  const when=t.toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'});
+  return `<div class="due"><div class="n ${cls}">${n}</div><div class="d">${dd===0?'check in-game time':when}</div></div>`;
+}
+
+function renderDuties(){
+  rollSchedules();
+  const sel=document.getElementById('duty-filter');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">Everyone\'s tasks</option>'+S.team.map(p=>`<option ${p.name===cur?'selected':''}>${esc(p.name)}</option>`).join('');
+  const filter=sel.value;
+  const list=document.getElementById('duty-list');
+  let shown=0;
+  list.innerHTML=CATS.map(cat=>{
+    const ds=S.duties.filter(d=>d.cat===cat&&(!filter||d.primary.includes(filter)||d.backup.includes(filter)));
+    if(!ds.length)return'';
+    shown+=ds.length;
+    return `<div class="cat">${cat}</div>`+ds.map(d=>{
+      const p=d.primary.length?d.primary.map(x=>`<span class="chip">👑 ${esc(x)}${S.team.some(t=>t.name===x)?'':' ⚠'}</span>`).join(''):'<span class="chip warn">⚠ Unassigned</span>';
+      const b=d.backup.length?d.backup.map(x=>`<span class="chip backup">🛟 ${esc(x)}</span>`).join(''):'<span class="chip norm">none</span>';
+      const scheduled=d.next&&d.days;
+      const sub=(scheduled?'':esc(d.freq||''))+(d.notes?(scheduled?'':(d.freq?' · ':''))+esc(d.notes):'');
+      const nMsgs=(d.msgs||[]).length;
+      return `<div class="card">
+        <div class="duty-top">
+          <div style="flex:1;min-width:0">
+            <div class="duty-name">${esc(d.name)}</div>
+            ${sub?`<div class="duty-freq">${sub}</div>`:''}
+            <div class="chips"><span class="chip-label">Main:</span>${p}</div>
+            <div class="chips"><span class="chip-label">Backup:</span>${b}</div>
+          </div>
+          <div class="row-actions">
+            ${dueBadge(d)}
+            <button class="btn ghost sm" onclick="openDuty('${d.id}')" title="Edit task">✏️</button>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:4px">
+          <button class="btn ghost sm" onclick="openMsgs('${d.id}')" title="Alliance message templates">💬${nMsgs?' '+nMsgs:''}</button>
+        </div>
+      </div>`;
+    }).join('');
+  }).join('')||'<div class="empty">No tasks yet</div>';
+  document.getElementById('duty-count').textContent=filter?shown+' task(s) for '+filter:S.duties.length+' tasks';
+}
+setInterval(renderDuties,60000);
+
+function copyMsg(dutyId,msgId){
+  const d=S.duties.find(x=>x.id===dutyId);
+  const m=(d.msgs||[]).find(x=>x.id===msgId);
+  navigator.clipboard.writeText(m.body).then(()=>{
+    const btn=document.getElementById('cp-'+msgId);
+    btn.textContent='✓';btn.classList.add('copy-ok');
+    setTimeout(()=>{btn.textContent='📋';btn.classList.remove('copy-ok');},1500);
+  });
+}
+
+function renderTeam(){
+  document.getElementById('team-list').innerHTML=S.team.map(p=>{
+    const n=S.duties.filter(d=>d.primary.includes(p.name)).length;
+    const nb=S.duties.filter(d=>d.backup.includes(p.name)).length;
+    return `<div class="card member">
+      <div><span class="nm">${esc(p.name)}</span> <span class="chip norm">${esc(p.role)}</span></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="duties-count">${n} task${n===1?'':'s'}${nb?' +'+nb+' backup':''}</span>
+        <button class="btn ghost sm" onclick="openMember('${p.id}')">Edit</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+const bg=document.getElementById('modal-bg'), modal=document.getElementById('modal');
+function closeModal(){bg.classList.remove('on');}
+function showModal(html){modal.innerHTML=html;bg.classList.add('on');}
+
+function armed(btn){if(btn.dataset.a)return true;btn.dataset.a='1';btn.textContent='Tap again to confirm';return false;}
+
+let pickP=[],pickB=[];
+function openDuty(id){
+  const d=id?S.duties.find(x=>x.id===id):{cat:"Events",name:"",freq:"",primary:[],backup:[],notes:"",msgs:[]};
+  pickP=[...d.primary];pickB=[...d.backup];
+  let dateVal='';
+  if(d.next){const t=new Date(d.next);dateVal=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
+  showModal(`<h3>${id?'Edit task':'New task'}</h3>
+    <label>Task name</label><input id="f-name" value="${esc(d.name)}">
+    <label>Category</label><select id="f-cat">${CATS.map(c=>`<option ${c===d.cat?'selected':''}>${c}</option>`).join('')}</select>
+    <label>Frequency (text)</label><input id="f-freq" value="${esc(d.freq)}" placeholder="Weekly, every other day...">
+    <label>👑 Main — in charge of this task (tap names)</label><div class="pill-multi" id="pick-p">${S.team.map(p=>`<button class="${pickP.includes(p.name)?'sel':''}" onclick="togglePick('p','${esc(p.name)}',this)">${esc(p.name)}</button>`).join('')}</div>
+    <label>🛟 Backup — steps in when main is away</label><div class="pill-multi" id="pick-b">${S.team.map(p=>`<button class="${pickB.includes(p.name)?'selb':''}" onclick="togglePick('b','${esc(p.name)}',this)">${esc(p.name)}</button>`).join('')}</div>
+    <label>Next date (leave blank for no countdown)</label><input type="date" id="f-next" value="${dateVal}">
+    <label>Repeats every ... days</label><input type="number" id="f-days" value="${d.days||''}" min="0.5" step="0.5" placeholder="2, 7, 14, 28...">
+    <label>Notes</label><textarea id="f-notes" style="min-height:60px">${esc(d.notes)}</textarea>
+    <div class="actions">
+      ${id?`<button class="btn danger sm" onclick="delDuty('${id}',this)">Delete</button>`:''}
+      <button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn" onclick="saveDuty('${id||''}')">Save</button>
+    </div>`);
+}
+function togglePick(which,name,btn){
+  const arr=which==='p'?pickP:pickB, cls=which==='p'?'sel':'selb';
+  const i=arr.indexOf(name);
+  if(i>=0){arr.splice(i,1);btn.classList.remove(cls);}else{arr.push(name);btn.classList.add(cls);}
+}
+function saveDuty(id){
+  const nd=val('f-next'), days=parseFloat(val('f-days'));
+  const obj={cat:val('f-cat'),name:val('f-name'),freq:val('f-freq'),primary:pickP,backup:pickB,notes:val('f-notes')};
+  if(!obj.name)return alert('Task needs a name');
+  if(nd&&days){obj.next=new Date(nd+'T00:00:00').toISOString();obj.days=days;}
+  else{obj.next=null;obj.days=null;}
+  if(id){const d=S.duties.find(x=>x.id===id);obj.msgs=d.msgs||[];Object.assign(d,obj);}
+  else{obj.id=uid();obj.msgs=[];S.duties.push(obj);}
+  save();closeModal();renderDuties();renderTeam();
+}
+function delDuty(id,btn){if(btn&&!armed(btn))return;S.duties=S.duties.filter(x=>x.id!==id);save();closeModal();renderDuties();renderTeam();}
+
+function openMsgs(dutyId){
+  const d=S.duties.find(x=>x.id===dutyId);
+  const rows=(d.msgs||[]).map(m=>`<div class="msg-row" style="margin-top:8px">
+      <button class="btn sm" id="cp-${m.id}" onclick="copyMsg('${dutyId}','${m.id}')">📋 Copy</button>
+      <span class="t" onclick="openDutyMsg('${dutyId}','${m.id}')" title="Tap to edit">${esc(m.title)}</span>
+    </div>`).join('')||'<p class="toolbar-note" style="margin-top:8px">No saved messages yet.</p>';
+  showModal(`<h3>💬 ${esc(d.name)}</h3>
+    <div class="msgs-label" style="margin-top:6px">Alliance message templates</div>
+    ${rows}
+    <div class="actions">
+      <button class="btn ghost" onclick="closeModal()">Close</button>
+      <button class="btn" onclick="openDutyMsg('${dutyId}')">+ New template</button>
+    </div>`);
+}
+function openDutyMsg(dutyId,msgId){
+  const d=S.duties.find(x=>x.id===dutyId);
+  const m=msgId?(d.msgs||[]).find(x=>x.id===msgId):{title:"",body:""};
+  showModal(`<h3>${msgId?'Edit message':'New message'} — ${esc(d.name)}</h3>
+    <label>Title</label><input id="f-mtitle" value="${esc(m.title)}">
+    <label>Message (what gets copied)</label><textarea id="f-mbody">${esc(m.body)}</textarea>
+    <div class="actions">
+      ${msgId?`<button class="btn danger sm" onclick="delDutyMsg('${dutyId}','${msgId}',this)">Delete</button>`:''}
+      <button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn" onclick="saveDutyMsg('${dutyId}','${msgId||''}')">Save</button>
+    </div>`);
+}
+function saveDutyMsg(dutyId,msgId){
+  const d=S.duties.find(x=>x.id===dutyId);
+  const obj={title:val('f-mtitle'),body:document.getElementById('f-mbody').value};
+  if(!obj.title)return alert('Message needs a title');
+  if(!d.msgs)d.msgs=[];
+  if(msgId){Object.assign(d.msgs.find(x=>x.id===msgId),obj);}
+  else{obj.id=uid();d.msgs.push(obj);}
+  save();renderDuties();openMsgs(dutyId);
+}
+function delDutyMsg(dutyId,msgId,btn){
+  if(btn&&!armed(btn))return;
+  const d=S.duties.find(x=>x.id===dutyId);
+  d.msgs=(d.msgs||[]).filter(x=>x.id!==msgId);
+  save();renderDuties();openMsgs(dutyId);
+}
+
+function openMember(id){
+  const p=id?S.team.find(x=>x.id===id):{name:"",role:"R4"};
+  showModal(`<h3>${id?'Edit person':'New person'}</h3>
+    <label>Name (in-game)</label><input id="f-pname" value="${esc(p.name)}">
+    <label>Rank</label><select id="f-prole"><option ${p.role==='R5'?'selected':''}>R5</option><option ${p.role==='R4'?'selected':''}>R4</option><option ${p.role==='R3'?'selected':''}>R3</option></select>
+    <div class="actions">
+      ${id?`<button class="btn danger sm" onclick="delMember('${id}',this)">Remove</button>`:''}
+      <button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn" onclick="saveMember('${id||''}')">Save</button>
+    </div>`);
+}
+function saveMember(id){
+  const name=val('f-pname'),role=val('f-prole');
+  if(!name)return alert('Needs a name');
+  if(id){
+    const p=S.team.find(x=>x.id===id);
+    const old=p.name;
+    if(old!==name){S.duties.forEach(d=>{d.primary=d.primary.map(n=>n===old?name:n);d.backup=d.backup.map(n=>n===old?name:n);});}
+    p.name=name;p.role=role;
+  }else{S.team.push({id:uid(),name,role});}
+  save();closeModal();renderTeam();renderDuties();
+}
+function delMember(id,btn){
+  if(btn&&!armed(btn))return;
+  const p=S.team.find(x=>x.id===id);
+  S.team=S.team.filter(x=>x.id!==id);
+  S.duties.forEach(d=>{d.primary=d.primary.filter(x=>x!==p.name);d.backup=d.backup.filter(x=>x!==p.name);});
+  save();closeModal();renderTeam();renderDuties();
+}
+
+function renderLinks(){
+  if(!S.links)S.links=JSON.parse(JSON.stringify(seed.links));
+  document.getElementById('links-bar').innerHTML=S.links.map(l=>
+    `<a class="linkbtn" href="${esc(l.url||'#')}" target="_blank" rel="noopener" ${l.url?'':'onclick="event.preventDefault();openLinkEdit(\''+l.id+'\')" title="Tap to set the URL"'}>${esc(l.label)}${l.url?'':' (set link)'}</a>`
+  ).join('')+`<button class="btn ghost sm" onclick="openLinkEdit()">+ Add link</button>`;
+}
+function openLinkEdit(id){
+  const l=id?S.links.find(x=>x.id===id):{label:"",url:""};
+  showModal(`<h3>${id?'Edit link':'New link'}</h3>
+    <label>Label</label><input id="f-llabel" value="${esc(l.label)}">
+    <label>URL</label><input id="f-lurl" value="${esc(l.url)}" placeholder="https://discord.gg/...">
+    <div class="actions">
+      ${id?`<button class="btn danger sm" onclick="delLink('${id}',this)">Delete</button>`:''}
+      <button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn" onclick="saveLink('${id||''}')">Save</button>
+    </div>`);
+}
+function saveLink(id){
+  const obj={label:val('f-llabel'),url:val('f-lurl')};
+  if(!obj.label)return alert('Link needs a label');
+  if(id){Object.assign(S.links.find(x=>x.id===id),obj);}else{obj.id=uid();S.links.push(obj);}
+  save();closeModal();renderLinks();
+}
+function delLink(id,btn){if(btn&&!armed(btn))return;S.links=S.links.filter(x=>x.id!==id);save();closeModal();renderLinks();}
+
+function exportData(){
+  const a=document.createElement('a');
+  a.href='data:application/json,'+encodeURIComponent(JSON.stringify(S,null,1));
+  a.download='unf-alliance-hq.json';a.click();
+}
+function importData(ev){
+  const f=ev.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{try{S=JSON.parse(r.result);save();renderAll();}catch(e){}};
+  r.readAsText(f);
+}
+function renderAll(){renderDuties();renderTeam();renderLinks();}
+renderAll();tickClocks();pullRemote();
+</script>
+</body>
+</html>
