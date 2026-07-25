@@ -472,9 +472,7 @@ function renderDuties(){
             <button class="btn ghost sm" onclick="openDuty('${d.id}')" title="Edit task" style="color:var(--muted);font-size:14px">✎</button>
           </div>
         </div>
-        <div style="display:flex;justify-content:flex-end;gap:6px;margin-top:4px">
-          ${nMsgs===1?`<button class="btn sm" id="qc-${d.msgs[0].id}" onclick="copyMsg('${d.id}','${d.msgs[0].id}','qc-')">📋 Copy</button>`:''}
-          ${nMsgs>1?`<button class="btn sm" onclick="openMsgs('${d.id}')">📋 Copy…</button>`:''}
+        <div style="display:flex;justify-content:flex-end;margin-top:4px">
           <button class="btn ghost sm" onclick="openMsgs('${d.id}')" title="Alliance message templates">💬${nMsgs?' '+nMsgs:''}</button>
         </div>
       </div>`;
