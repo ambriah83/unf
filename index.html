@@ -453,6 +453,7 @@ function applyAuth(j){
 async function fetchProfiles(){
   try{PROFILES=await rpc('list_profiles',{tok:TOK});renderTeam();}catch(e){}
 }
+function normName(s){return (s||'').normalize('NFKD').replace(/[̀-ͯ]/g,'').replace(/[^\p{L}\p{N}]/gu,'').toLowerCase();}
 const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 function openSettings(){
   const [bm,bd]=(MYP.bday||'').split('-');
@@ -891,7 +892,7 @@ function renderTeam(){
         ${CANmanage()?'<span class="drag-h" style="cursor:grab;touch-action:none;padding:6px 8px;margin-left:-6px;color:var(--muted);user-select:none">☰</span>':''}
         <div style="display:flex;flex-direction:column;gap:7px;min-width:0;padding:3px 0">
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="nm">${esc(p.name)}</span> <span class="chip norm">${esc(p.role)}</span>${(()=>{
-            const pr=PROFILES.find(x=>x.name===p.name);
+            const pr=PROFILES.find(x=>normName(x.name)===normName(p.name));
             if(!pr)return'';
             let out='';
             const now=new Date();
