@@ -204,7 +204,7 @@ footer .links{gap:7px}
   <button class="on" data-tab="duties">📋 Tasks</button>
   <button data-tab="codes">🎁 Codes</button>
   <button data-tab="team">👥 Team</button>
-  <button data-tab="ai" id="tab-ai-btn" style="display:none">❄ Frosty</button>
+  <button data-tab="ai" id="tab-ai-btn" style="display:none"><svg width="15" height="15" viewBox="0 0 32 32" style="vertical-align:-2px" aria-hidden="true"><line x1="16" y1="3.5" x2="16" y2="7" stroke="#bfe6ff" stroke-width="2"/><circle cx="16" cy="3" r="2.4" fill="#eaf7ff"/><rect x="7" y="7.5" width="18" height="17" rx="6" fill="#eaf7ff"/><circle cx="12.5" cy="15" r="2.5" fill="#1c86d1"/><circle cx="19.5" cy="15" r="2.5" fill="#1c86d1"/><path d="M12 20.2 Q16 22.8 20 20.2" stroke="#4a9ad8" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg> Frosty</button>
 </nav>
 <main>
 
@@ -222,7 +222,7 @@ footer .links{gap:7px}
 </section>
 
 <section class="tab" id="tab-ai">
-  <div class="bar"><h2>❄ Frosty — your alliance AI</h2></div>
+  <div class="bar"><h2><svg width="20" height="20" viewBox="0 0 32 32" style="vertical-align:-3px" aria-hidden="true"><line x1="16" y1="3.5" x2="16" y2="7" stroke="#bfe6ff" stroke-width="2"/><circle cx="16" cy="3" r="2.4" fill="#eaf7ff"/><rect x="7" y="7.5" width="18" height="17" rx="6" fill="#eaf7ff"/><circle cx="12.5" cy="15" r="2.5" fill="#1c86d1"/><circle cx="19.5" cy="15" r="2.5" fill="#1c86d1"/><path d="M12 20.2 Q16 22.8 20 20.2" stroke="#4a9ad8" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg> Frosty — your alliance AI</h2></div>
   <p class="toolbar-note" style="margin-bottom:10px">Ask anything about WOS — heroes, gear, events, our schedule. 📷 send a screenshot of your hero or chief gear for upgrade advice. Frosty can even change your settings ("set my timezone to EST").</p>
   <div id="chat-box" style="display:flex;flex-direction:column;gap:10px;margin:12px 0;min-height:60px"></div>
   <div style="display:flex;gap:8px;align-items:flex-end">
@@ -705,10 +705,16 @@ function rollSchedules(){
 }
 
 function localDayStr(ms){return new Intl.DateTimeFormat('en-CA',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'}).format(ms);}
+function effTime(d){
+  if(d.time)return d.time;
+  const ts=(d.legions||[]).map(L=>L.time).filter(Boolean).sort();
+  return ts[0]||null;
+}
 function dueDD(d){
   if(!d.next||!d.days)return null;
-  if(d.time){
-    const [h,m]=d.time.split(':').map(Number);
+  const et=effTime(d);
+  if(et){
+    const [h,m]=et.split(':').map(Number);
     const inst=utcDay(Date.parse(d.next))*DAY+(h*60+m)*60000;
     return Math.round((Date.parse(localDayStr(inst))-Date.parse(localDayStr(Date.now())))/DAY);
   }
@@ -726,15 +732,18 @@ function markDone(id){
 function dueBadge(d){
   if(!d.next||!d.days)return '';
   let big, sub, dd;
-  if(d.time){
-    const [h,m]=d.time.split(':').map(Number);
+  const et=effTime(d);
+  const legionTimed=(d.legions||[]).some(L=>L.time);
+  if(et){
+    const [h,m]=et.split(':').map(Number);
     const inst=utcDay(Date.parse(d.next))*DAY+(h*60+m)*60000;
     dd=Math.round((Date.parse(localDayStr(inst))-Date.parse(localDayStr(Date.now())))/DAY);
     const ev=new Date(inst);
     if(dd===0)big='TODAY';
     else if(dd<7)big=ev.toLocaleDateString('en-US',{timeZone:TZ,weekday:'short'});
     else big=ev.toLocaleDateString('en-US',{timeZone:TZ,month:'short',day:'numeric'});
-    sub=ev.toLocaleTimeString([],{hour:'numeric',minute:'2-digit',timeZone:TZ})+' '+tzAbbr(TZ);
+    if(d.time&&!legionTimed)sub=ev.toLocaleTimeString([],{hour:'numeric',minute:'2-digit',timeZone:TZ})+' '+tzAbbr(TZ);
+    else sub=ev.toLocaleDateString('en-US',{timeZone:TZ,month:'short',day:'numeric'});
   }else{
     dd=utcDay(Date.parse(d.next))-utcDay(Date.now());
     const dt=new Date(d.next);
@@ -767,7 +776,8 @@ function renderDuties(){
       const dd=dueDD(d);
       if(dd===null)return Infinity;
       let inst=utcDay(Date.parse(d.next))*DAY;
-      if(d.time){const[h,m]=d.time.split(':').map(Number);inst+=(h*60+m)*60000;}
+      const et=effTime(d);
+      if(et){const[h,m]=et.split(':').map(Number);inst+=(h*60+m)*60000;}
       return dd*1e13+inst;
     };
     const ds=S.duties.filter(d=>d.cat===cat&&(!filter||d.primary.includes(filter)||d.backup.includes(filter)))
@@ -778,7 +788,7 @@ function renderDuties(){
     const header=`<div class="cat" onclick="toggleCat('${cat}')" style="cursor:pointer;user-select:none" title="Tap to ${closed?'expand':'collapse'}">${cat}<span style="letter-spacing:0;color:var(--muted);font-weight:400">· ${ds.length}</span><span class="chev">${closed?'▸':'▾'}</span></div>`;
     if(closed)return header;
     return header+ds.map(d=>{
-      const p=d.primary.length?d.primary.map(x=>`<span class="chip">👑 ${esc(x)}${S.team.some(t=>t.name===x)?'':' ⚠'}</span>`).join(''):'<span class="chip warn">⚠ Unassigned</span>';
+      const p=d.primary.length?d.primary.map(x=>`<span class="chip">👑 ${esc(x)}${S.team.some(t=>t.name===x)||x==='Everyone'?'':' ⚠'}</span>`).join(''):'<span class="chip warn">⚠ Unassigned</span>';
       const b=d.backup.length?d.backup.map(x=>`<span class="chip backup">🛟 ${esc(x)}</span>`).join(''):'<span class="chip norm">none</span>';
       const scheduled=d.next&&d.days;
       const sub=(scheduled?'':esc(d.freq||''))+(d.notes?(scheduled?'':(d.freq?' · ':''))+esc(d.notes):'');
@@ -800,7 +810,14 @@ function renderDuties(){
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;gap:6px;flex-wrap:wrap">
           <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
             ${CANedit()&&dueDD(d)===0?`<button class="btn sm" style="background:rgba(93,211,158,.15);border:1px solid rgba(93,211,158,.4);color:var(--green);box-shadow:none" onclick="markDone('${d.id}')" title="Done for today — jump to the next one">✓ Done</button>`:''}
-            ${scheduled&&d.cat==='Events'?`<button class="btn ghost sm" onclick="toggleRsvp('${d.id}')" ${(d.going||[]).includes(UNAME)?'style="color:var(--green);border-color:rgba(93,211,158,.4)"':''}>🙋 ${(d.going||[]).includes(UNAME)?"I'm in ✓":"I'm in"}</button>
+            ${(d.name||'').startsWith('Bear Trap')?(()=>{
+              const myBear=S.duties.find(x=>(x.name||'').startsWith('Bear Trap')&&(x.going||[]).includes(UNAME));
+              const mine=myBear&&myBear.id===d.id;
+              return (mine
+                ?'<span class="chip" style="background:rgba(93,211,158,.15);border-color:rgba(93,211,158,.45);color:var(--green)">⭐ My bear</span>'
+                :`<button class="btn ghost sm" onclick="claimBear('${d.id}')">${myBear?'Switch to this bear':'⭐ Claim as my bear'}</button>`)
+                +`<span class="chip norm" style="cursor:pointer" onclick="showGoing('${d.id}')" title="See who's in this bear">${(d.going||[]).length} in</span>`;
+            })():scheduled&&d.rsvp?`<button class="btn ghost sm" onclick="toggleRsvp('${d.id}')" ${(d.going||[]).includes(UNAME)?'style="color:var(--green);border-color:rgba(93,211,158,.4)"':''}>🙋 ${(d.going||[]).includes(UNAME)?"I'm in ✓":"I'm in"}</button>
             <span class="chip norm" style="cursor:pointer" onclick="showGoing('${d.id}')" title="See who's going">${(d.going||[]).length} going</span>`:''}
           </div>
           <div style="display:flex;gap:6px">
@@ -897,6 +914,17 @@ function convTime(hhmm){
   const [h,m]=hhmm.split(':').map(Number);
   const d=new Date();d.setUTCHours(h,m,0,0);
   return d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit',timeZone:TZ})+' '+tzAbbr(TZ);
+}
+async function claimBear(id){
+  S.duties.forEach(x=>{
+    if((x.name||'').startsWith('Bear Trap')){
+      x.going=(x.going||[]).filter(n=>n!==UNAME);
+      if(x.id===id)x.going.push(UNAME);
+    }
+  });
+  localStorage.setItem(cacheKey(),JSON.stringify(S));
+  renderDuties();
+  try{await rpc('claim_bear',{tok:TOK,p_duty:id});}catch(e){authFail(e);}
 }
 async function toggleRsvp(id){
   const d=S.duties.find(x=>x.id===id);
@@ -1103,8 +1131,8 @@ function openDuty(id){
     <label>Task name</label><input id="f-name" value="${esc(d.name)}">
     <label>Category</label><select id="f-cat">${CATS.map(c=>`<option ${c===d.cat?'selected':''}>${c}</option>`).join('')}</select>
     <label>Frequency (text)</label><input id="f-freq" value="${esc(d.freq)}" placeholder="Weekly, every other day...">
-    <label>👑 Main — in charge of this task (tap names)</label><div class="pill-multi" id="pick-p">${S.team.map(p=>`<button class="${pickP.includes(p.name)?'sel':''}" onclick="togglePick('p','${esc(p.name)}',this)">${esc(p.name)}</button>`).join('')}</div>
-    <label>🛟 Backup — steps in when main is away</label><div class="pill-multi" id="pick-b">${S.team.map(p=>`<button class="${pickB.includes(p.name)?'selb':''}" onclick="togglePick('b','${esc(p.name)}',this)">${esc(p.name)}</button>`).join('')}</div>
+    <label>👑 Main — in charge of this task (tap names)</label><div class="pill-multi" id="pick-p"><button class="${pickP.includes('Everyone')?'sel':''}" onclick="togglePick('p','Everyone',this)">Everyone</button>${S.team.map(p=>`<button class="${pickP.includes(p.name)?'sel':''}" onclick="togglePick('p','${esc(p.name)}',this)">${esc(p.name)}</button>`).join('')}</div>
+    <label>🛟 Backup — steps in when main is away</label><div class="pill-multi" id="pick-b"><button class="${pickB.includes('Everyone')?'selb':''}" onclick="togglePick('b','Everyone',this)">Everyone</button>${S.team.map(p=>`<button class="${pickB.includes(p.name)?'selb':''}" onclick="togglePick('b','${esc(p.name)}',this)">${esc(p.name)}</button>`).join('')}</div>
     <label>Next date (leave blank for no countdown)</label><input type="date" id="f-next" value="${dateVal}">
     <label>Repeats every ... days</label><input type="number" id="f-days" value="${d.days||''}" min="0.5" step="0.5" placeholder="2, 7, 14, 28...">
     <label>Time — server time UTC (optional, for bear traps)</label>
@@ -1113,6 +1141,7 @@ function openDuty(id){
       <span style="color:var(--muted)">:</span>
       <select id="f-tmn" style="width:auto">${Array.from({length:12},(_,i)=>`<option ${d.time&&d.time.split(':')[1]==String(i*5).padStart(2,'0')?'selected':''}>${String(i*5).padStart(2,'0')}</option>`).join('')}</select>
     </div>
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="f-rsvp" ${d.rsvp?'checked':''} style="width:auto"> 🙋 Track sign-ups ("I'm in" button on the card)</label>
     <label>Notes</label><textarea id="f-notes" style="min-height:60px">${esc(d.notes)}</textarea>
     <div class="actions">
       ${id?`<button class="btn danger sm" onclick="delDuty('${id}',this)">Delete</button>`:''}
@@ -1133,6 +1162,7 @@ function saveDuty(id){
   else{obj.next=null;obj.days=null;}
   const th=val('f-th');
   obj.time=th!==''?th+':'+(val('f-tmn')||'00'):null;
+  obj.rsvp=document.getElementById('f-rsvp').checked;
   if(id){const d=S.duties.find(x=>x.id===id);obj.msgs=d.msgs||[];Object.assign(d,obj);}
   else{obj.id=uid();obj.msgs=[];S.duties.push(obj);}
   save();closeModal();renderDuties();renderTeam();
