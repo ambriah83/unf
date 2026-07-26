@@ -286,6 +286,8 @@ footer .links{gap:7px}
   <p class="toolbar-note" style="margin-top:12px">❄ WOS Alliance HQ — Whiteout Survival Alliance Management</p>
 </footer>
 
+<button id="fab-chat" onclick="openAiTab()" title="Chat with Frosty" style="position:fixed;bottom:18px;right:18px;z-index:40;width:56px;height:56px;border-radius:50%;display:none;align-items:center;justify-content:center;font-size:26px;cursor:pointer;background:linear-gradient(160deg,#2f739e,#1a4a75);border:1px solid rgba(110,198,255,.5);box-shadow:0 4px 20px rgba(0,0,0,.45),0 0 18px rgba(110,198,255,.35)">🤖</button>
+
 <div class="modal-bg" id="modal-bg" onclick="if(event.target===this)closeModal()">
   <div class="modal" id="modal"></div>
 </div>
@@ -870,6 +872,10 @@ function endTeamDrag(){
 document.addEventListener('pointerup',endTeamDrag);
 document.addEventListener('pointercancel',endTeamDrag);
 
+function openAiTab(){
+  const b=document.querySelector('nav button[data-tab="ai"]');
+  if(b){b.click();window.scrollTo(0,0);const i=document.getElementById('chat-in');if(i)i.focus();}
+}
 let chatMsgs=[], CHATIMG=null, chatHistLoaded=false;
 function chatBubble(role,html){
   const box=document.getElementById('chat-box');
@@ -1228,6 +1234,8 @@ function applyRoleUI(){
   const set=(id,on)=>{const x=document.getElementById(id);if(x)x.style.display=on?'':'none';};
   set('btn-add-task',e);set('btn-add-code',e);set('btn-add-person',g);
   set('tab-ai-btn',AID==='unf');
+  const fab=document.getElementById('fab-chat');
+  if(fab)fab.style.display=(AID==='unf'&&TOK)?'flex':'none';
   const bootRich=BOOT_CACHE&&((BOOT_CACHE.team||[]).length>0||(BOOT_CACHE.duties||[]).some(d=>(d.primary||[]).length));
   const remotePoor=(S.team||[]).length===0&&!(S.duties||[]).some(d=>(d.primary||[]).length);
   const rc=document.getElementById('restore-card');
