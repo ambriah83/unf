@@ -239,6 +239,7 @@ footer .links{gap:7px}
     <div style="font-weight:600; margin-bottom:6px">My account</div>
     <p class="toolbar-note" id="acct-info" style="margin-bottom:8px"></p>
     <div style="display:flex; gap:8px; flex-wrap:wrap">
+      <button class="btn sm" onclick="openSettings()">⚙ Settings</button>
       <button class="btn ghost sm" onclick="openChangePass()">Change password</button>
       <button class="btn ghost sm" onclick="logOut()">Sign out</button>
     </div>
@@ -399,10 +400,50 @@ function showLock(msg){
   document.getElementById('lock-err').textContent=msg||'';
 }
 function hideLock(){document.getElementById('lock').style.display='none';window.scrollTo(0,0);}
+let MYP={}, PROFILES=[];
 function applyAuth(j){
   TOK=j.token;ROLE=j.role;UNAME=j.name;UEMAIL=j.email;AID=j.aid;
+  MYP={tz:j.tz||'',bday:j.bday||'',loc:j.loc||''};
+  if(j.tz){TZ=j.tz;localStorage.setItem('wos-tz',TZ);fillTzSelect(document.getElementById('hdr-tz'));tickClocks();}
   localStorage.setItem('wos-tok',TOK);
   localStorage.setItem('wos-aid',AID);
+}
+async function fetchProfiles(){
+  try{PROFILES=await rpc('list_profiles',{tok:TOK});renderTeam();}catch(e){}
+}
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function openSettings(){
+  const [bm,bd]=(MYP.bday||'').split('-');
+  showModal(`<h3>⚙ My settings</h3>
+    <label>My timezone</label>
+    <select id="set-tz" style="width:auto"></select>
+    <label>My birthday (no year — we'll celebrate 🎂)</label>
+    <div style="display:flex;gap:6px">
+      <select id="set-bm" style="width:auto"><option value="">Month</option>${MONTHS.map((m,i)=>`<option value="${String(i+1).padStart(2,'0')}" ${bm===String(i+1).padStart(2,'0')?'selected':''}>${m}</option>`).join('')}</select>
+      <select id="set-bd" style="width:auto"><option value="">Day</option>${Array.from({length:31},(_,i)=>`<option value="${String(i+1).padStart(2,'0')}" ${bd===String(i+1).padStart(2,'0')?'selected':''}>${i+1}</option>`).join('')}</select>
+    </div>
+    <label>Where I'm located (city or country)</label>
+    <input id="set-loc" value="${esc(MYP.loc||'')}" placeholder="e.g. Texas, USA">
+    <p id="set-err" style="font-size:12px;color:var(--red);min-height:14px;margin-top:6px"></p>
+    <div class="actions">
+      <button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn" onclick="saveSettings()">Save</button>
+    </div>`);
+  fillTzSelect(document.getElementById('set-tz'));
+}
+async function saveSettings(){
+  const tz=document.getElementById('set-tz').value;
+  const bm=document.getElementById('set-bm').value, bd=document.getElementById('set-bd').value;
+  const bday=(bm&&bd)?bm+'-'+bd:'';
+  const loc=val('set-loc');
+  try{
+    await rpc('update_profile',{tok:TOK,p_tz:tz,p_bday:bday,p_loc:loc,p_avatar:null});
+    MYP={tz,bday,loc};
+    TZ=tz;localStorage.setItem('wos-tz',TZ);
+    fillTzSelect(document.getElementById('hdr-tz'));
+    tickClocks();renderDuties();
+    closeModal();fetchProfiles();
+  }catch(e){if(!authFail(e))document.getElementById('set-err').textContent=e.message;}
 }
 async function signIn(){
   const err=document.getElementById('lock-err');
@@ -411,7 +452,7 @@ async function signIn(){
   err.textContent='';
   try{
     applyAuth(await rpc('login',{p_email:em,p_pass:pw}));
-    hideLock();await pullRemote();renderAll();fetchCommunity();
+    hideLock();await pullRemote();renderAll();fetchCommunity();fetchProfiles();
   }catch(e){err.textContent=e.message.includes('wrong')?'Wrong email or password':e.message;}
 }
 async function registerAcct(){
@@ -423,7 +464,7 @@ async function registerAcct(){
   err.textContent='';
   try{
     applyAuth(await rpc('register',{p_email:em,p_pass:pw,p_name:nm,p_aid:a,p_apass:ap}));
-    hideLock();await pullRemote();renderAll();fetchCommunity();
+    hideLock();await pullRemote();renderAll();fetchCommunity();fetchProfiles();
   }catch(e){err.textContent=e.message;}
 }
 async function createAlliance2(){
@@ -555,6 +596,7 @@ function hdrTzChanged(){
   TZ=document.getElementById('hdr-tz').value;
   localStorage.setItem('wos-tz',TZ);
   tickClocks();renderDuties();
+  if(TOK){MYP.tz=TZ;rpc('update_profile',{tok:TOK,p_tz:TZ,p_bday:null,p_loc:null,p_avatar:null}).catch(()=>{});}
 }
 function openConverter(){
   showModal(`<h3>🕐 UTC converter</h3>
@@ -730,7 +772,16 @@ function renderTeam(){
       <div style="display:flex;align-items:center;gap:8px;min-width:0">
         ${CANmanage()?'<span class="drag-h" style="cursor:grab;touch-action:none;padding:6px 8px;margin-left:-6px;color:var(--muted);user-select:none">☰</span>':''}
         <div style="display:flex;flex-direction:column;gap:7px;min-width:0;padding:3px 0">
-          <div style="display:flex;align-items:center;gap:8px"><span class="nm">${esc(p.name)}</span> <span class="chip norm">${esc(p.role)}</span></div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="nm">${esc(p.name)}</span> <span class="chip norm">${esc(p.role)}</span>${(()=>{
+            const pr=PROFILES.find(x=>x.name===p.name);
+            if(!pr)return'';
+            let out='';
+            const now=new Date();
+            const today=String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+            if(pr.bday===today)out+='<span class="chip warn">🎂 Birthday!</span>';
+            if(pr.loc)out+=`<span class="toolbar-note">📍 ${esc(pr.loc)}</span>`;
+            return out;
+          })()}</div>
           ${p.wosId?`<div><button class="chip norm" id="wid-${p.id}" style="cursor:pointer;white-space:nowrap" onclick="copyWosId('${p.id}')" title="Tap to copy WOS ID">🆔 ${esc(p.wosId)}</button></div>`:''}
         </div>
       </div>
@@ -1159,10 +1210,12 @@ if(urlAid)document.getElementById('r-aid').value=urlAid.toLowerCase();
     try{
       const m=await rpc('me',{tok:TOK});
       ROLE=m.role;UNAME=m.name;UEMAIL=m.email;AID=m.aid;
+      MYP={tz:m.tz||'',bday:m.bday||'',loc:m.loc||''};
+      if(m.tz){TZ=m.tz;localStorage.setItem('wos-tz',TZ);fillTzSelect(document.getElementById('hdr-tz'));}
       localStorage.setItem('wos-aid',AID);
       renderAll();
       await pullRemote();
-      renderAll();fetchCommunity();
+      renderAll();fetchCommunity();fetchProfiles();
       return;
     }catch(e){TOK='';localStorage.removeItem('wos-tok');}
   }
