@@ -154,56 +154,64 @@ footer .links{gap:7px}
       <button class="btn ghost" id="lm-create" style="flex:1" onclick="lockMode('create')">New alliance</button>
     </div>
     <div id="lock-signin">
+      <form onsubmit="event.preventDefault();signIn()">
       <label>Email</label>
-      <input id="s-email" type="email" placeholder="you@email.com" autocapitalize="none">
+      <input id="s-email" name="email" type="email" placeholder="you@email.com" autocapitalize="none" autocomplete="username">
       <label>Password</label>
-      <input type="password" id="s-pass" placeholder="Password" onkeydown="if(event.key==='Enter')signIn()">
-      <button class="btn" style="width:100%;padding:11px;margin-top:14px" onclick="signIn()">Sign in</button>
+      <input type="password" id="s-pass" name="password" placeholder="Password" autocomplete="current-password">
+      <button type="submit" class="btn" style="width:100%;padding:11px;margin-top:14px">Sign in</button>
+      </form>
       <p style="font-size:11px;color:var(--muted);margin-top:8px"><a href="#" onclick="event.preventDefault();lockMode('reset')" style="color:var(--ice)">Forgot your password?</a> Reset it with your alliance passcode.</p>
     </div>
     <div id="lock-reset" style="display:none">
+      <form onsubmit="event.preventDefault();selfReset()">
       <label>Your account email</label>
-      <input id="x-email" type="email" placeholder="you@email.com" autocapitalize="none">
+      <input id="x-email" name="email" type="email" placeholder="you@email.com" autocapitalize="none" autocomplete="username">
       <label>Alliance code</label>
-      <input id="x-aid" placeholder="e.g. unf" autocapitalize="none">
+      <input id="x-aid" placeholder="e.g. unf" autocapitalize="none" autocomplete="off">
       <label>Alliance passcode (from your R5/R4)</label>
-      <input id="x-apass" placeholder="Passcode">
+      <input id="x-apass" placeholder="Passcode" autocomplete="off">
       <label>New password (6+ characters)</label>
-      <input type="password" id="x-pass" placeholder="New password">
-      <button class="btn" style="width:100%;padding:11px;margin-top:14px" onclick="selfReset()">Reset password</button>
+      <input type="password" id="x-pass" name="new-password" placeholder="New password" autocomplete="new-password">
+      <button type="submit" class="btn" style="width:100%;padding:11px;margin-top:14px">Reset password</button>
+      </form>
       <p style="font-size:11px;color:var(--muted);margin-top:8px"><a href="#" onclick="event.preventDefault();lockMode('signin')" style="color:var(--ice)">← Back to sign in</a></p>
     </div>
     <div id="lock-register" style="display:none">
+      <form onsubmit="event.preventDefault();registerAcct()">
       <label>Your in-game username — EXACTLY as it appears in WOS</label>
-      <input id="r-name" placeholder="e.g. Warrior~Princess">
+      <input id="r-name" placeholder="e.g. Warrior~Princess" autocomplete="nickname">
       <label>Email</label>
-      <input id="r-email" type="email" placeholder="you@email.com" autocapitalize="none">
+      <input id="r-email" name="email" type="email" placeholder="you@email.com" autocapitalize="none" autocomplete="username">
       <label>Choose a password (6+ characters)</label>
-      <input type="password" id="r-pass" placeholder="Password">
+      <input type="password" id="r-pass" name="new-password" placeholder="Password" autocomplete="new-password">
       <label>Alliance code</label>
-      <input id="r-aid" placeholder="e.g. unf" autocapitalize="none">
+      <input id="r-aid" placeholder="e.g. unf" autocapitalize="none" autocomplete="off">
       <label>Alliance passcode (from your R5/R4)</label>
-      <input id="r-apass" placeholder="Passcode">
-      <button class="btn" style="width:100%;padding:11px;margin-top:14px" onclick="registerAcct()">Create my login</button>
+      <input id="r-apass" placeholder="Passcode" autocomplete="off">
+      <button type="submit" class="btn" style="width:100%;padding:11px;margin-top:14px">Create my login</button>
+      </form>
       <p style="font-size:11px;color:var(--muted);margin-top:8px">New members start view-only until an admin promotes them.</p>
     </div>
     <div id="lock-create" style="display:none">
+      <form onsubmit="event.preventDefault();createAlliance2()">
       <label>Alliance name</label>
       <input id="c-name" placeholder="e.g. UNF United Front" oninput="genAid()">
       <label>State #</label>
       <input id="c-state" placeholder="e.g. 3400" inputmode="numeric" oninput="genAid()">
       <label>Alliance code (auto-generated — your team types this to join)</label>
-      <input id="c-aid" placeholder="fills in automatically" autocapitalize="none" oninput="window._aidTouched=true">
+      <input id="c-aid" placeholder="fills in automatically" autocapitalize="none" oninput="window._aidTouched=true" autocomplete="off">
       <label>Alliance passcode (auto-generated — share it with your team)</label>
-      <input id="c-apass" placeholder="fills in automatically">
+      <input id="c-apass" placeholder="fills in automatically" autocomplete="off">
       <label style="margin-top:14px;color:var(--ice)">Your admin login</label>
       <label>Your in-game username</label>
-      <input id="c-uname" placeholder="e.g. Strata">
+      <input id="c-uname" placeholder="e.g. Strata" autocomplete="nickname">
       <label>Email</label>
-      <input id="c-email" type="email" placeholder="you@email.com" autocapitalize="none">
+      <input id="c-email" name="email" type="email" placeholder="you@email.com" autocapitalize="none" autocomplete="username">
       <label>Password (6+ characters)</label>
-      <input type="password" id="c-pass" placeholder="Password">
-      <button class="btn" style="width:100%;padding:11px;margin-top:14px" onclick="createAlliance2()">Create alliance ❄</button>
+      <input type="password" id="c-pass" name="new-password" placeholder="Password" autocomplete="new-password">
+      <button type="submit" class="btn" style="width:100%;padding:11px;margin-top:14px">Create alliance ❄</button>
+      </form>
       <p style="font-size:11px;color:var(--muted);margin-top:8px">You become the ADMIN. Starts pre-loaded with a full WOS duty template.</p>
     </div>
     <p id="lock-err" style="font-size:12px;color:var(--red);margin-top:10px;min-height:16px;text-align:center"></p>
@@ -540,6 +548,7 @@ async function signIn(){
   err.textContent='';
   try{
     applyAuth(await rpc('login',{p_email:em,p_pass:pw}));
+    localStorage.setItem('wos-email',em);
     hideLock();await pullRemote();renderAll();fetchCommunity();fetchProfiles();maybeOfferTz();checkNewUsers();
   }catch(e){err.textContent=e.message.includes('wrong')?'Wrong email or password':e.message;}
 }
@@ -552,6 +561,7 @@ async function registerAcct(){
   err.textContent='';
   try{
     applyAuth(await rpc('register',{p_email:em,p_pass:pw,p_name:nm,p_aid:a,p_apass:ap}));
+    localStorage.setItem('wos-email',em);
     hideLock();await pullRemote();renderAll();fetchCommunity();fetchProfiles();
   }catch(e){err.textContent=e.message;}
 }
@@ -567,6 +577,7 @@ async function createAlliance2(){
   const fresh=TEMPLATE(nm,st);
   try{
     applyAuth(await rpc('create_alliance2',{p_aid:a,p_apass:ap,p_aname:nm,p_state:st,p_email:em,p_pass:pw,p_uname:un,new_data:fresh}));
+    localStorage.setItem('wos-email',em);
     S=fresh;
     localStorage.setItem(cacheKey(),JSON.stringify(S));
     lastSynced=Date.now();
@@ -917,8 +928,7 @@ function renderDuties(){
           <div style="flex:1;min-width:0">
             <div class="duty-name">${esc(d.name)}</div>
             ${sub?`<div class="duty-freq">${sub}</div>`:''}
-            <div class="chips" ${CANedit()?`onclick="openDuty('${d.id}')" style="cursor:pointer" title="Tap to change who's assigned"`:''}><span class="chip-label">${t('main_lbl')}</span>${p}</div>
-            <div class="chips" ${CANedit()?`onclick="openDuty('${d.id}')" style="cursor:pointer" title="Tap to change who's assigned"`:''}><span class="chip-label">${t('backup_lbl')}</span>${b}</div>
+            <div class="chips" ${CANedit()?`onclick="openDuty('${d.id}')" style="cursor:pointer" title="Tap to change who's assigned"`:''}><span class="chip-label">${t('main_lbl')}</span>${p}<span class="chip-label" style="margin-left:8px">${t('backup_lbl')}</span>${b}</div>
           </div>
           <div class="row-actions">
             ${dueBadge(d)}
@@ -945,7 +955,7 @@ function renderDuties(){
             <span class="chip norm" style="cursor:pointer" onclick="showGoing('${d.id}')" title="See who's going">${(d.going||[]).length} going</span>`:''}
           </div>
           <div style="display:flex;gap:6px">
-            ${CANedit()&&d.cat==='Events'?`<button class="btn ghost sm" onclick="openLegions('${d.id}')" title="Legions — leads & times">⚔${(d.legions||[]).length?' '+d.legions.length:''}</button>`:''}
+            ${CANedit()&&(d.cat==='Events'&&/foundry|canyon/i.test(d.name||'')||(d.legions||[]).length)?`<button class="btn ghost sm" onclick="openLegions('${d.id}')" title="Legions — leads & times">⚔${(d.legions||[]).length?' '+d.legions.length:''}</button>`:''}
             <button class="btn ghost sm" onclick="openMsgs('${d.id}')" title="Alliance message templates">💬${nMsgs?' '+nMsgs:''}</button>
           </div>
         </div>
@@ -1652,6 +1662,8 @@ function renderAll(){renderHeader();renderDuties();renderTeam();renderLinks();re
 fillTzSelect(document.getElementById('hdr-tz'));tickClocks();applyI18n();
 const urlAid=new URLSearchParams(location.search).get('a');
 if(urlAid)document.getElementById('r-aid').value=urlAid.toLowerCase();
+const savedEmail=localStorage.getItem('wos-email');
+if(savedEmail)document.getElementById('s-email').value=savedEmail;
 (async()=>{
   if(TOK){
     try{

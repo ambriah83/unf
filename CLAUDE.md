@@ -10,6 +10,7 @@ Multi-alliance management app for Whiteout Survival. Built for Ambria (in-game: 
 - Scraper: `.github/workflows/codes.yml` every 6h runs `scripts/scrape-codes.mjs` → WSCO gift codes → `community_codes` (repo secret `SCRAPER_PASS` gates the write RPC).
 
 ## Data model (Postgres, all access via security-definer RPCs, anon key only)
+- Table privileges for anon/authenticated are REVOKED on everything except `community_codes` (public read via policy) — RLS deny-all plus no grants, both on purpose (7/26). Emails: only `list_users` (ADMIN-gated in SQL) returns other people's emails; `list_profiles` deliberately excludes them.
 - `alliance_state(id=slug, data jsonb, updated_at)` — whole alliance state as one blob: `{meta{name,state}, team[{id,name,role,wosId}], duties[], links[], codes[], teamOrdered}`. Duty: `{id,cat,name,freq,primary[],backup[],notes,days,next,time,rsvp,going[],legions[{id,name,leader[],time,going[]}],msgs[{id,title,body}]}`.
 - `app_secret(id,pass)` — alliance passcodes + `anthropic`, `vapid_pub`, `vapid_priv`, `scraper`.
 - `app_user` (bcrypt via pgcrypto — functions need `search_path = public, extensions`), `app_session` (tokens, 180d), `chat_log`, `community_codes`, `push_sub`, `notify_log`.
