@@ -1,4 +1,7 @@
 // WOS Alliance HQ — UI translations. LANGS drives the settings dropdown.
+var LANG=localStorage.getItem('wos-lang')||'en';
+const CAT_KEYS={'Events':'cat_events','Strategy':'cat_strategy','HR & People':'cat_hr','Land':'cat_land'};
+function tCat(c){return CAT_KEYS[c]?t(CAT_KEYS[c]):c;}
 const LANGS={en:'English',es:'Español',pt:'Português',fr:'Français',de:'Deutsch',tr:'Türkçe',ru:'Русский',ko:'한국어',ja:'日本語',zh:'中文',ar:'العربية'};
 const LOCALES={en:'en-US',es:'es',pt:'pt-BR',fr:'fr',de:'de',tr:'tr',ru:'ru',ko:'ko',ja:'ja',zh:'zh-CN',ar:'ar'};
 const I18N={

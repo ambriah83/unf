@@ -188,7 +188,7 @@ footer .links{gap:7px}
 </div>
 <header>
   <h1><span class="snow">❄</span> <span id="hq-name">Alliance HQ</span> <span id="hq-state" style="font-size:13px;color:var(--muted);font-weight:400"></span></h1>
-  <div style="font-size:11px;color:var(--muted);letter-spacing:.6px;margin-top:2px">Whiteout Survival Alliance Management</div>
+  <div data-i18n="tagline" style="font-size:11px;color:var(--muted);letter-spacing:.6px;margin-top:2px">Whiteout Survival Alliance Management</div>
   <div class="clocks" style="align-items:center">
     <span style="display:inline-flex;gap:5px;align-items:center">
       <select id="hdr-tz" onchange="hdrTzChanged()" style="width:auto;padding:2px 4px;font-size:12px;font-weight:600;color:var(--ice)"></select>
@@ -198,26 +198,26 @@ footer .links{gap:7px}
     <button onclick="location.reload()" title="Refresh the app" style="background:rgba(21,34,52,.6);border:1px solid var(--border);border-radius:50%;color:var(--ice);font-size:13px;cursor:pointer;width:24px;height:24px;line-height:1;padding:0;display:inline-flex;align-items:center;justify-content:center">⟳</button>
     <span id="sync-dot"></span>
   </div>
-  <button class="btn ghost sm" style="margin-top:8px" onclick="openConverter()">🕐 UTC converter</button>
+  <button class="btn ghost sm" data-i18n="utc_conv" style="margin-top:8px" onclick="openConverter()">🕐 UTC converter</button>
 </header>
 <nav>
-  <button class="on" data-tab="duties">📋 Tasks</button>
-  <button data-tab="codes">🎁 Codes</button>
-  <button data-tab="team">👥 Team</button>
+  <button class="on" data-tab="duties" data-i18n="tab_tasks">📋 Tasks</button>
+  <button data-tab="codes" data-i18n="tab_codes">🎁 Codes</button>
+  <button data-tab="team" data-i18n="tab_team">👥 Team</button>
   <button data-tab="ai" id="tab-ai-btn" style="display:none"><svg width="15" height="15" viewBox="0 0 32 32" style="vertical-align:-2px" aria-hidden="true"><line x1="16" y1="3.5" x2="16" y2="7" stroke="#bfe6ff" stroke-width="2"/><circle cx="16" cy="3" r="2.4" fill="#eaf7ff"/><rect x="7" y="7.5" width="18" height="17" rx="6" fill="#eaf7ff"/><circle cx="12.5" cy="15" r="2.5" fill="#1c86d1"/><circle cx="19.5" cy="15" r="2.5" fill="#1c86d1"/><path d="M12 20.2 Q16 22.8 20 20.2" stroke="#4a9ad8" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg> Frosty</button>
 </nav>
 <main>
 
 <section class="tab on" id="tab-duties">
   <div class="bar">
-    <h2>Task allocation</h2>
-    <button class="btn" id="btn-add-task" onclick="openDuty()">+ Add task</button>
+    <h2 data-i18n="task_alloc">Task allocation</h2>
+    <button class="btn" id="btn-add-task" data-i18n="add_task" onclick="openDuty()">+ Add task</button>
   </div>
   <div class="filter-row">
     <select id="duty-filter" onchange="renderDuties()"><option value="">Everyone's tasks</option></select>
     <span class="toolbar-note" id="duty-count"></span>
   </div>
-  <p class="toolbar-note" style="margin-bottom:10px">Each task shows who's on it and when the next one is — tap 💬 for its saved messages, ✎ to edit the task.</p>
+  <p class="toolbar-note" data-i18n="helper_tasks" style="margin-bottom:10px">Each task shows who's on it and when the next one is — tap 💬 for its saved messages, ✎ to edit the task.</p>
   <div id="duty-list"></div>
 </section>
 
@@ -236,26 +236,26 @@ footer .links{gap:7px}
 
 <section class="tab" id="tab-codes">
   <div class="bar">
-    <h2>Gift codes</h2>
-    <button class="btn" id="btn-add-code" onclick="openCode()">+ Add code</button>
+    <h2 data-i18n="gift_codes">Gift codes</h2>
+    <button class="btn" id="btn-add-code" data-i18n="add_code" onclick="openCode()">+ Add code</button>
   </div>
-  <p class="toolbar-note" style="margin-bottom:12px">Tap a code to copy it, then redeem it with the 🎁 GC Redeem link below. You can also copy your ID from the team roster.</p>
+  <p class="toolbar-note" data-i18n="helper_codes" style="margin-bottom:12px">Tap a code to copy it, then redeem it with the 🎁 GC Redeem link below. You can also copy your ID from the team roster.</p>
   <div id="code-list"></div>
 </section>
 
 <section class="tab" id="tab-team">
   <div class="bar">
-    <h2>R4 / R5 team</h2>
-    <button class="btn" id="btn-add-person" onclick="openMember()">+ Add person</button>
+    <h2 data-i18n="team_hdr">R4 / R5 team</h2>
+    <button class="btn" id="btn-add-person" data-i18n="add_person" onclick="openMember()">+ Add person</button>
   </div>
   <div id="team-list"></div>
   <div class="card" style="margin-top:18px">
-    <div style="font-weight:600; margin-bottom:6px">My account</div>
+    <div data-i18n="my_account" style="font-weight:600; margin-bottom:6px">My account</div>
     <p class="toolbar-note" id="acct-info" style="margin-bottom:8px"></p>
     <div style="display:flex; gap:8px; flex-wrap:wrap">
-      <button class="btn sm" onclick="openSettings()">⚙ Settings</button>
-      <button class="btn ghost sm" onclick="openChangePass()">Change password</button>
-      <button class="btn ghost sm" onclick="logOut()">Sign out</button>
+      <button class="btn sm" data-i18n="settings_btn" onclick="openSettings()">⚙ Settings</button>
+      <button class="btn ghost sm" data-i18n="change_pass" onclick="openChangePass()">Change password</button>
+      <button class="btn ghost sm" data-i18n="sign_out" onclick="logOut()">Sign out</button>
     </div>
   </div>
   <div class="card" id="admin-panel" style="margin-top:12px;display:none">
@@ -271,7 +271,7 @@ footer .links{gap:7px}
   <div class="card" style="margin-top:12px">
     <div style="font-weight:600; margin-bottom:6px">Invite & data</div>
     <div style="display:flex; gap:8px; flex-wrap:wrap">
-      <button class="btn" onclick="copyInvite(this)">📨 Copy invite for your team</button>
+      <button class="btn" data-i18n="copy_invite" onclick="copyInvite(this)">📨 Copy invite for your team</button>
       <button class="btn ghost sm" onclick="exportData()">⬇ Export backup</button>
       <button class="btn ghost sm" id="btn-import" onclick="document.getElementById('import-file').click()">⬆ Import</button>
       <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
@@ -306,8 +306,13 @@ footer .links{gap:7px}
   <div class="modal" id="modal"></div>
 </div>
 
+<script src="i18n.js?v=2"></script>
 <script>
 const CATS=["Events","Strategy","HR & People","Land"];
+function applyI18n(){
+  document.documentElement.dir=LANG==='ar'?'rtl':'ltr';
+  document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);});
+}
 const DAY=864e5;
 function utcDay(ms){return Math.floor(ms/DAY);}
 function rel(n){return new Date((utcDay(Date.now())+n)*DAY).toISOString();}
@@ -439,8 +444,9 @@ function hideLock(){document.getElementById('lock').style.display='none';window.
 let MYP={}, PROFILES=[];
 function applyAuth(j){
   TOK=j.token;ROLE=j.role;UNAME=j.name;UEMAIL=j.email;AID=j.aid;
-  MYP={tz:j.tz||'',bday:j.bday||'',loc:j.loc||''};
+  MYP={tz:j.tz||'',bday:j.bday||'',loc:j.loc||'',lang:j.lang||''};
   if(j.tz){TZ=j.tz;localStorage.setItem('wos-tz',TZ);fillTzSelect(document.getElementById('hdr-tz'));tickClocks();}
+  if(j.lang){LANG=j.lang;localStorage.setItem('wos-lang',LANG);applyI18n();}
   localStorage.setItem('wos-tok',TOK);
   localStorage.setItem('wos-aid',AID);
 }
@@ -450,15 +456,17 @@ async function fetchProfiles(){
 const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 function openSettings(){
   const [bm,bd]=(MYP.bday||'').split('-');
-  showModal(`<h3>⚙ My settings</h3>
-    <label>My timezone</label>
+  showModal(`<h3>${t('my_settings')}</h3>
+    <label>${t('my_lang')}</label>
+    <select id="set-lang" style="width:auto">${Object.entries(LANGS).map(([k,v])=>`<option value="${k}" ${k===LANG?'selected':''}>${v}</option>`).join('')}</select>
+    <label>${t('my_tz')}</label>
     <select id="set-tz" style="width:auto"></select>
-    <label>My birthday (no year — we'll celebrate 🎂)</label>
+    <label>${t('my_bday')}</label>
     <div style="display:flex;gap:6px">
       <select id="set-bm" style="width:auto"><option value="">Month</option>${MONTHS.map((m,i)=>`<option value="${String(i+1).padStart(2,'0')}" ${bm===String(i+1).padStart(2,'0')?'selected':''}>${m}</option>`).join('')}</select>
       <select id="set-bd" style="width:auto"><option value="">Day</option>${Array.from({length:31},(_,i)=>`<option value="${String(i+1).padStart(2,'0')}" ${bd===String(i+1).padStart(2,'0')?'selected':''}>${i+1}</option>`).join('')}</select>
     </div>
-    <label>Where I'm located (city or country)</label>
+    <label>${t('my_loc')}</label>
     <input id="set-loc" value="${esc(MYP.loc||'')}" placeholder="e.g. Texas, USA">
     <p id="set-err" style="font-size:12px;color:var(--red);min-height:14px;margin-top:6px"></p>
     <div class="actions">
@@ -472,12 +480,15 @@ async function saveSettings(){
   const bm=document.getElementById('set-bm').value, bd=document.getElementById('set-bd').value;
   const bday=(bm&&bd)?bm+'-'+bd:'';
   const loc=val('set-loc');
+  const lang=document.getElementById('set-lang').value;
   try{
-    await rpc('update_profile',{tok:TOK,p_tz:tz,p_bday:bday,p_loc:loc,p_avatar:null});
-    MYP={tz,bday,loc};
+    await rpc('update_profile',{tok:TOK,p_tz:tz,p_bday:bday,p_loc:loc,p_avatar:null,p_lang:lang});
+    MYP={tz,bday,loc,lang};
     TZ=tz;localStorage.setItem('wos-tz',TZ);
+    LANG=lang;localStorage.setItem('wos-lang',LANG);
+    applyI18n();
     fillTzSelect(document.getElementById('hdr-tz'));
-    tickClocks();renderDuties();
+    tickClocks();renderAll();
     closeModal();fetchProfiles();
   }catch(e){if(!authFail(e))document.getElementById('set-err').textContent=e.message;}
 }
@@ -615,7 +626,7 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
 
 function tickClocks(){
   const now=new Date();
-  document.getElementById('clock-local').textContent=now.toLocaleTimeString([],{hour:'numeric',minute:'2-digit',timeZone:TZ});
+  document.getElementById('clock-local').textContent=now.toLocaleTimeString(LOCALE(),{hour:'numeric',minute:'2-digit',timeZone:TZ});
   document.getElementById('clock-utc').textContent='UTC: '+now.toUTCString().slice(17,22);
 }
 setInterval(tickClocks,10000);
@@ -689,7 +700,7 @@ function convertUTC(){
   const h=Number(document.getElementById('conv-h').value), m=Number(document.getElementById('conv-m').value);
   const d=new Date();
   d.setUTCHours(h,m,0,0);
-  document.getElementById('conv-out').textContent=d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',timeZone:TZ})+' '+tzAbbr(TZ);
+  document.getElementById('conv-out').textContent=d.toLocaleTimeString(LOCALE(),{hour:'2-digit',minute:'2-digit',timeZone:TZ})+' '+tzAbbr(TZ);
 }
 
 function rollSchedules(){
@@ -740,19 +751,19 @@ function dueBadge(d){
     const inst=utcDay(Date.parse(d.next))*DAY+(h*60+m)*60000;
     dd=Math.round((Date.parse(localDayStr(inst))-Date.parse(localDayStr(Date.now())))/DAY);
     const ev=new Date(inst);
-    if(dd===0)big='TODAY';
-    else if(dd<7)big=ev.toLocaleDateString('en-US',{timeZone:TZ,weekday:'short'});
-    else big=ev.toLocaleDateString('en-US',{timeZone:TZ,month:'short',day:'numeric'});
-    if(d.time&&!legionTimed)sub=ev.toLocaleTimeString([],{hour:'numeric',minute:'2-digit',timeZone:TZ})+' '+tzAbbr(TZ);
-    else sub=ev.toLocaleDateString('en-US',{timeZone:TZ,month:'short',day:'numeric'});
+    if(dd===0)big=t('today');
+    else if(dd<7)big=ev.toLocaleDateString(LOCALE(),{timeZone:TZ,weekday:'short'});
+    else big=ev.toLocaleDateString(LOCALE(),{timeZone:TZ,month:'short',day:'numeric'});
+    if(d.time&&!legionTimed)sub=ev.toLocaleTimeString(LOCALE(),{hour:'numeric',minute:'2-digit',timeZone:TZ})+' '+tzAbbr(TZ);
+    else sub=ev.toLocaleDateString(LOCALE(),{timeZone:TZ,month:'short',day:'numeric'});
   }else{
     dd=utcDay(Date.parse(d.next))-utcDay(Date.now());
     const dt=new Date(d.next);
-    if(dd===0)big='TODAY';
-    else if(dd<7)big=dt.toLocaleDateString('en-US',{timeZone:'UTC',weekday:'short'});
-    else big=dt.toLocaleDateString('en-US',{timeZone:'UTC',month:'short',day:'numeric'});
-    if(dd<7)sub=dt.toLocaleDateString('en-US',{timeZone:'UTC',month:'short',day:'numeric'});
-    else sub='in '+dd+' days';
+    if(dd===0)big=t('today');
+    else if(dd<7)big=dt.toLocaleDateString(LOCALE(),{timeZone:'UTC',weekday:'short'});
+    else big=dt.toLocaleDateString(LOCALE(),{timeZone:'UTC',month:'short',day:'numeric'});
+    if(dd<7)sub=dt.toLocaleDateString(LOCALE(),{timeZone:'UTC',month:'short',day:'numeric'});
+    else sub=tn('in_days',dd);
   }
   const cls=dd===0?'now':dd===1?'soon':'';
   return `<div class="due"><div class="n ${cls}">${big}</div><div class="d">${sub}</div></div>`;
@@ -768,7 +779,7 @@ function renderDuties(){
   rollSchedules();
   const sel=document.getElementById('duty-filter');
   const cur=sel.value;
-  sel.innerHTML='<option value="">Everyone\'s tasks</option>'+S.team.map(p=>`<option ${p.name===cur?'selected':''}>${esc(p.name)}</option>`).join('');
+  sel.innerHTML='<option value="">'+t('everyones')+'</option>'+S.team.map(p=>`<option ${p.name===cur?'selected':''}>${esc(p.name)}</option>`).join('');
   const filter=sel.value;
   const list=document.getElementById('duty-list');
   let shown=0;
@@ -786,11 +797,11 @@ function renderDuties(){
     if(!ds.length)return'';
     shown+=ds.length;
     const closed=COLL.has(cat);
-    const header=`<div class="cat" onclick="toggleCat('${cat}')" style="cursor:pointer;user-select:none" title="Tap to ${closed?'expand':'collapse'}">${cat}<span style="letter-spacing:0;color:var(--muted);font-weight:400">· ${ds.length}</span><span class="chev">${closed?'▸':'▾'}</span></div>`;
+    const header=`<div class="cat" onclick="toggleCat('${cat}')" style="cursor:pointer;user-select:none" title="Tap to ${closed?'expand':'collapse'}">${tCat(cat)}<span style="letter-spacing:0;color:var(--muted);font-weight:400">· ${ds.length}</span><span class="chev">${closed?'▸':'▾'}</span></div>`;
     if(closed)return header;
     return header+ds.map(d=>{
-      const p=d.primary.length?d.primary.map(x=>`<span class="chip">👑 ${esc(x)}${S.team.some(t=>t.name===x)||x==='Everyone'?'':' ⚠'}</span>`).join(''):'<span class="chip warn">⚠ Unassigned</span>';
-      const b=d.backup.length?d.backup.map(x=>`<span class="chip backup">🛟 ${esc(x)}</span>`).join(''):'<span class="chip norm">none</span>';
+      const p=d.primary.length?d.primary.map(x=>`<span class="chip">👑 ${esc(x)}${S.team.some(t=>t.name===x)||x==='Everyone'?'':' ⚠'}</span>`).join(''):`<span class="chip warn">${t('unassigned')}</span>`;
+      const b=d.backup.length?d.backup.map(x=>`<span class="chip backup">🛟 ${esc(x)}</span>`).join(''):`<span class="chip norm">${t('none_lbl')}</span>`;
       const scheduled=d.next&&d.days;
       const sub=(scheduled?'':esc(d.freq||''))+(d.notes?(scheduled?'':(d.freq?' · ':''))+esc(d.notes):'');
       const nMsgs=(d.msgs||[]).length;
@@ -799,8 +810,8 @@ function renderDuties(){
           <div style="flex:1;min-width:0">
             <div class="duty-name">${esc(d.name)}</div>
             ${sub?`<div class="duty-freq">${sub}</div>`:''}
-            <div class="chips" ${CANedit()?`onclick="openDuty('${d.id}')" style="cursor:pointer" title="Tap to change who's assigned"`:''}><span class="chip-label">Main:</span>${p}</div>
-            <div class="chips" ${CANedit()?`onclick="openDuty('${d.id}')" style="cursor:pointer" title="Tap to change who's assigned"`:''}><span class="chip-label">Backup:</span>${b}</div>
+            <div class="chips" ${CANedit()?`onclick="openDuty('${d.id}')" style="cursor:pointer" title="Tap to change who's assigned"`:''}><span class="chip-label">${t('main_lbl')}</span>${p}</div>
+            <div class="chips" ${CANedit()?`onclick="openDuty('${d.id}')" style="cursor:pointer" title="Tap to change who's assigned"`:''}><span class="chip-label">${t('backup_lbl')}</span>${b}</div>
           </div>
           <div class="row-actions">
             ${dueBadge(d)}
@@ -810,7 +821,7 @@ function renderDuties(){
         ${(d.legions||[]).length?`<div style="margin-top:8px;border-top:1px dashed rgba(110,198,255,.15);padding-top:6px">${d.legions.map(L=>`<div style="font-size:12px;color:var(--muted);padding:2px 0">⚔ <b style="color:var(--text)">${esc(L.name)}</b>${L.time?' · '+convTime(L.time):''} · 👑 ${L.leader&&L.leader.length?esc(L.leader.join(', ')):'<span style="color:var(--amber)">needs a lead</span>'}</div>`).join('')}</div>`:''}
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;gap:6px;flex-wrap:wrap">
           <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-            ${CANedit()&&dueDD(d)===0?`<button class="btn sm" style="background:rgba(93,211,158,.15);border:1px solid rgba(93,211,158,.4);color:var(--green);box-shadow:none" onclick="markDone('${d.id}')" title="Done for today — jump to the next one">✓ Done</button>`:''}
+            ${CANedit()&&dueDD(d)===0?`<button class="btn sm" style="background:rgba(93,211,158,.15);border:1px solid rgba(93,211,158,.4);color:var(--green);box-shadow:none" onclick="markDone('${d.id}')" title="Done for today — jump to the next one">${t('done_btn')}</button>`:''}
             ${(d.name||'').startsWith('Bear Trap')?(()=>{
               const myBear=S.duties.find(x=>(x.name||'').startsWith('Bear Trap')&&(x.going||[]).includes(UNAME));
               const mine=myBear&&myBear.id===d.id;
@@ -829,7 +840,7 @@ function renderDuties(){
       </div>`;
     }).join('');
   }).join('')||'<div class="empty">No tasks yet</div>';
-  document.getElementById('duty-count').textContent=filter?shown+' task(s) for '+filter:S.duties.length+' tasks';
+  document.getElementById('duty-count').textContent=filter?shown+' · '+filter:S.duties.length+' '+t('tasks_word');
 }
 setInterval(renderDuties,60000);
 
@@ -872,8 +883,8 @@ function renderTeam(){
         </div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
-        <span class="duties-count" style="white-space:nowrap">${n} task${n===1?'':'s'}</span>
-        ${CANmanage()?`<button class="btn ghost sm" onclick="openMember('${p.id}')">Edit</button>`:''}
+        <span class="duties-count" style="white-space:nowrap">${n} ${t('tasks_word')}</span>
+        ${CANmanage()?`<button class="btn ghost sm" onclick="openMember('${p.id}')">${t('edit_btn')}</button>`:''}
       </div>
     </div>`;
   }).join('');
@@ -914,7 +925,7 @@ document.addEventListener('pointercancel',endTeamDrag);
 function convTime(hhmm){
   const [h,m]=hhmm.split(':').map(Number);
   const d=new Date();d.setUTCHours(h,m,0,0);
-  return d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit',timeZone:TZ})+' '+tzAbbr(TZ);
+  return d.toLocaleTimeString(LOCALE(),{hour:'numeric',minute:'2-digit',timeZone:TZ})+' '+tzAbbr(TZ);
 }
 async function claimBear(id){
   S.duties.forEach(x=>{
@@ -1485,7 +1496,7 @@ function importData(ev){
   r.readAsText(f);
 }
 function renderAll(){renderHeader();renderDuties();renderTeam();renderLinks();renderCodes();applyRoleUI();renderAccountUI();}
-fillTzSelect(document.getElementById('hdr-tz'));tickClocks();
+fillTzSelect(document.getElementById('hdr-tz'));tickClocks();applyI18n();
 const urlAid=new URLSearchParams(location.search).get('a');
 if(urlAid)document.getElementById('r-aid').value=urlAid.toLowerCase();
 (async()=>{
@@ -1493,8 +1504,9 @@ if(urlAid)document.getElementById('r-aid').value=urlAid.toLowerCase();
     try{
       const m=await rpc('me',{tok:TOK});
       ROLE=m.role;UNAME=m.name;UEMAIL=m.email;AID=m.aid;
-      MYP={tz:m.tz||'',bday:m.bday||'',loc:m.loc||''};
+      MYP={tz:m.tz||'',bday:m.bday||'',loc:m.loc||'',lang:m.lang||''};
       if(m.tz){TZ=m.tz;localStorage.setItem('wos-tz',TZ);fillTzSelect(document.getElementById('hdr-tz'));}
+      if(m.lang){LANG=m.lang;localStorage.setItem('wos-lang',LANG);}
       localStorage.setItem('wos-aid',AID);
       renderAll();
       await pullRemote();
