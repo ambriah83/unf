@@ -306,7 +306,7 @@ footer .links{gap:7px}
   <div class="modal" id="modal"></div>
 </div>
 
-<script src="i18n.js?v=2"></script>
+<script src="i18n.js?v=3"></script>
 <script>
 const CATS=["Events","Strategy","HR & People","Land"];
 function applyI18n(){
@@ -809,7 +809,7 @@ function renderDuties(){
       if(et){const[h,m]=et.split(':').map(Number);inst+=(h*60+m)*60000;}
       return dd*1e13+inst;
     };
-    const ds=S.duties.filter(d=>d.cat===cat&&(!filter||d.primary.includes(filter)||d.backup.includes(filter)))
+    const ds=S.duties.filter(d=>d.cat===cat&&(!filter||d.primary.includes(filter)||d.backup.includes(filter)||d.primary.includes('Everyone')||d.backup.includes('Everyone')))
       .sort((a,b)=>sortKey(a)-sortKey(b));
     if(!ds.length)return'';
     shown+=ds.length;
