@@ -204,7 +204,7 @@ footer .links{gap:7px}
   <button class="on" data-tab="duties">📋 Tasks</button>
   <button data-tab="codes">🎁 Codes</button>
   <button data-tab="team">👥 Team</button>
-  <button data-tab="ai" id="tab-ai-btn" style="display:none">🤖 Frosty</button>
+  <button data-tab="ai" id="tab-ai-btn" style="display:none">❄ Frosty</button>
 </nav>
 <main>
 
@@ -222,7 +222,7 @@ footer .links{gap:7px}
 </section>
 
 <section class="tab" id="tab-ai">
-  <div class="bar"><h2>🤖 Frosty — your alliance AI</h2></div>
+  <div class="bar"><h2>❄ Frosty — your alliance AI</h2></div>
   <p class="toolbar-note" style="margin-bottom:10px">Ask anything about WOS — heroes, gear, events, our schedule. 📷 send a screenshot of your hero or chief gear for upgrade advice. Frosty can even change your settings ("set my timezone to EST").</p>
   <div id="chat-box" style="display:flex;flex-direction:column;gap:10px;margin:12px 0;min-height:60px"></div>
   <div style="display:flex;gap:8px;align-items:flex-end">
@@ -286,7 +286,7 @@ footer .links{gap:7px}
   <p class="toolbar-note" style="margin-top:12px">❄ WOS Alliance HQ — Whiteout Survival Alliance Management</p>
 </footer>
 
-<button id="fab-chat" onclick="openAiTab()" title="Chat with Frosty" style="position:fixed;bottom:18px;right:18px;z-index:40;width:56px;height:56px;border-radius:50%;display:none;align-items:center;justify-content:center;font-size:26px;cursor:pointer;background:linear-gradient(160deg,#2f739e,#1a4a75);border:1px solid rgba(110,198,255,.5);box-shadow:0 4px 20px rgba(0,0,0,.45),0 0 18px rgba(110,198,255,.35)">🤖</button>
+<button id="fab-chat" onclick="openAiTab()" title="Chat with Frosty" style="position:fixed;bottom:18px;right:18px;z-index:40;width:56px;height:56px;border-radius:50%;display:none;align-items:center;justify-content:center;font-size:27px;cursor:pointer;background:radial-gradient(circle at 32% 28%, #9ed6ff 0%, #4a9ad8 35%, #1a4a75 100%);border:1px solid rgba(191,230,255,.6);box-shadow:0 4px 20px rgba(0,0,0,.45),0 0 22px rgba(110,198,255,.5),inset 0 1px 4px rgba(234,247,255,.4);color:#fff;text-shadow:0 0 10px rgba(234,247,255,.95),0 0 20px rgba(110,198,255,.8)">❄</button>
 
 <div class="modal-bg" id="modal-bg" onclick="if(event.target===this)closeModal()">
   <div class="modal" id="modal"></div>
@@ -920,7 +920,7 @@ async function loadChatHistory(){
       chatBubble('user',esc(h.q));
       chatBubble('ai',esc(h.a));
     });
-    if(!hist.length)chatBubble('ai','❄ Hey, I\'m Frosty! Ask me anything about Whiteout Survival — bear comps, hero priorities, SvS prep, our alliance schedule… or send me a screenshot of your gear.');
+    if(!hist.length)chatBubble('ai','❄ Hey, I\'m Frosty! Ask me anything about Whiteout Survival — our alliance schedule and event rules (like your specific bear trap), hero priorities, SvS prep… or send me a screenshot of your hero gear and I can help you decide what to upgrade next.');
   }catch(e){}
 }
 async function sendChat(){
