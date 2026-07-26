@@ -458,7 +458,7 @@ async function signIn(){
   err.textContent='';
   try{
     applyAuth(await rpc('login',{p_email:em,p_pass:pw}));
-    hideLock();await pullRemote();renderAll();fetchCommunity();fetchProfiles();
+    hideLock();await pullRemote();renderAll();fetchCommunity();fetchProfiles();maybeOfferTz();
   }catch(e){err.textContent=e.message.includes('wrong')?'Wrong email or password':e.message;}
 }
 async function registerAcct(){
@@ -604,6 +604,29 @@ function hdrTzChanged(){
   localStorage.setItem('wos-tz',TZ);
   tickClocks();renderDuties();
   if(TOK){MYP.tz=TZ;rpc('update_profile',{tok:TOK,p_tz:TZ,p_bday:null,p_loc:null,p_avatar:null}).catch(()=>{});}
+}
+function maybeOfferTz(){
+  const dev=Intl.DateTimeFormat().resolvedOptions().timeZone;
+  if(!dev||dev===TZ||localStorage.getItem('wos-tz-dismiss')===dev)return;
+  const old=document.getElementById('tz-toast');if(old)old.remove();
+  const el=document.createElement('div');
+  el.id='tz-toast';
+  el.style.cssText='position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:60;background:linear-gradient(165deg,rgba(30,48,70,.97),rgba(16,28,44,.99));border:1px solid rgba(110,198,255,.35);border-radius:12px;padding:12px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;max-width:92vw;box-shadow:0 8px 30px rgba(0,0,0,.5)';
+  el.innerHTML=`<span style="font-size:13px">🌎 Looks like you're in <b style="color:var(--ice)">${tzAbbr(dev)}</b> — switch the app to your local time?</span>
+    <button class="btn sm" onclick="acceptTz('${dev}')">Switch</button>
+    <button class="btn ghost sm" onclick="dismissTz('${dev}')">No thanks</button>`;
+  document.body.appendChild(el);
+}
+function acceptTz(dev){
+  TZ=dev;localStorage.setItem('wos-tz',TZ);
+  fillTzSelect(document.getElementById('hdr-tz'));
+  tickClocks();renderDuties();
+  if(TOK){MYP.tz=TZ;rpc('update_profile',{tok:TOK,p_tz:TZ,p_bday:null,p_loc:null,p_avatar:null}).catch(()=>{});}
+  const el=document.getElementById('tz-toast');if(el)el.remove();
+}
+function dismissTz(dev){
+  localStorage.setItem('wos-tz-dismiss',dev);
+  const el=document.getElementById('tz-toast');if(el)el.remove();
 }
 function openConverter(){
   showModal(`<h3>🕐 UTC converter</h3>
@@ -1244,7 +1267,7 @@ if(urlAid)document.getElementById('r-aid').value=urlAid.toLowerCase();
       localStorage.setItem('wos-aid',AID);
       renderAll();
       await pullRemote();
-      renderAll();fetchCommunity();fetchProfiles();
+      renderAll();fetchCommunity();fetchProfiles();maybeOfferTz();
       return;
     }catch(e){TOK='';localStorage.removeItem('wos-tok');}
   }
