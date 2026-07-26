@@ -248,6 +248,11 @@ footer .links{gap:7px}
     <div style="font-weight:600; margin-bottom:6px">App accounts <span class="toolbar-note">(admin only)</span></div>
     <div id="admin-users"></div>
   </div>
+  <div class="card" id="restore-card" style="margin-top:12px;display:none;border-color:rgba(93,211,158,.4)">
+    <div style="font-weight:600; margin-bottom:6px">🛟 Backup found on this device</div>
+    <p class="toolbar-note" style="margin-bottom:8px" id="restore-info"></p>
+    <button class="btn" onclick="restoreBoot(this)">Restore alliance data from this device</button>
+  </div>
   <div class="card" style="margin-top:12px">
     <div style="font-weight:600; margin-bottom:6px">Invite & data</div>
     <div style="display:flex; gap:8px; flex-wrap:wrap">
@@ -357,6 +362,7 @@ async function rpc(name,body){
   return txt?JSON.parse(txt):null;
 }
 let S=load();
+const BOOT_CACHE=(()=>{try{const r=localStorage.getItem('wos-hq-'+(localStorage.getItem('wos-aid')||'none'));return r?JSON.parse(r):null;}catch(e){return null;}})();
 let TZ=localStorage.getItem('wos-tz')||Intl.DateTimeFormat().resolvedOptions().timeZone;
 let lastSynced=0, syncTimer=null;
 function cacheKey(){return 'wos-hq-'+(AID||'none');}
@@ -523,6 +529,7 @@ function authFail(e){
 }
 async function pushRemote(){
   if(!TOK||ROLE==='R3')return;
+  if(lastSynced===0){setSyncUI(false);return;}
   try{
     try{
       const row=await rpc('get_state2',{tok:TOK});
@@ -530,7 +537,7 @@ async function pushRemote(){
         mergeState(row.data);
         renderAll();
       }
-    }catch(e){}
+    }catch(e){setSyncUI(false);return;}
     const now=new Date().toISOString();
     await rpc('put_state2',{tok:TOK,new_data:S,ts:now});
     lastSynced=new Date(now).getTime();
@@ -1112,6 +1119,28 @@ function applyRoleUI(){
   const e=CANedit(),g=CANmanage();
   const set=(id,on)=>{const x=document.getElementById(id);if(x)x.style.display=on?'':'none';};
   set('btn-add-task',e);set('btn-add-code',e);set('btn-add-person',g);
+  const bootRich=BOOT_CACHE&&((BOOT_CACHE.team||[]).length>0||(BOOT_CACHE.duties||[]).some(d=>(d.primary||[]).length));
+  const remotePoor=(S.team||[]).length===0&&!(S.duties||[]).some(d=>(d.primary||[]).length);
+  const rc=document.getElementById('restore-card');
+  if(rc){
+    if(g&&bootRich&&remotePoor){
+      rc.style.display='';
+      document.getElementById('restore-info').textContent='This device has an older copy with '+(BOOT_CACHE.team||[]).length+' team members and '+(BOOT_CACHE.duties||[]).filter(d=>(d.primary||[]).length).length+' assigned tasks. If the shared data looks wiped, restore it here.';
+    }else rc.style.display='none';
+  }
+}
+async function restoreBoot(btn){
+  if(btn&&!armed(btn))return;
+  if(!BOOT_CACHE)return;
+  S=BOOT_CACHE;
+  localStorage.setItem(cacheKey(),JSON.stringify(S));
+  try{
+    const now=new Date().toISOString();
+    await rpc('put_state2',{tok:TOK,new_data:S,ts:now});
+    lastSynced=new Date(now).getTime();
+    renderAll();
+    btn.textContent='✓ Restored!';
+  }catch(e){if(!authFail(e))btn.textContent='Restore failed — tell your admin';}
 }
 function copyInvite(btn){
   const m=S.meta||{};
