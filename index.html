@@ -119,6 +119,24 @@ footer .links{gap:7px}
 ::-webkit-scrollbar-thumb{background:rgba(110,198,255,.18); border-radius:5px}
 ::-webkit-scrollbar-thumb:hover{background:rgba(110,198,255,.3)}
 @media(max-width:600px){ nav button{padding:8px 12px; font-size:13px} .due{min-width:70px} .due .n{font-size:16px} }
+@media(min-width:900px){
+  header,nav,main,footer{max-width:1280px}
+  header{display:flex; align-items:center; column-gap:18px; row-gap:2px; flex-wrap:wrap; padding-top:14px}
+  header h1{margin:0}
+  .clocks{margin-top:0}
+  header>button{margin-top:0!important}
+  nav{margin-top:10px}
+  #duty-list{display:grid; grid-template-columns:1fr 1fr; gap:10px; align-items:start}
+  #duty-list .cat{grid-column:1/-1; margin:14px 0 2px}
+  #duty-list .card{margin-bottom:0}
+  #code-list{display:grid; grid-template-columns:1fr 1fr; gap:10px; align-items:start}
+  #code-list .card,#code-list details,#code-list .cat,#code-list p{grid-column:auto}
+  #code-list .cat{grid-column:1/-1}
+  #code-list details,#code-list>p{grid-column:1/-1}
+  #team-list{display:grid; grid-template-columns:repeat(auto-fill,minmax(330px,1fr)); gap:10px}
+  #team-list .card{margin-bottom:0}
+  #chat-box{max-width:860px}
+}
 </style>
 </head>
 <body>
@@ -269,7 +287,10 @@ footer .links{gap:7px}
   <div class="card" id="admin-panel" style="margin-top:12px;display:none">
     <div style="font-weight:600; margin-bottom:6px">App accounts <span class="toolbar-note">(admin only)</span></div>
     <div id="admin-users"></div>
-    <button class="btn ghost sm" style="margin-top:10px" onclick="openAdminChatLog()">📜 View Frosty chat log</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+      <button class="btn ghost sm" onclick="openAdminChatLog()">📜 View Frosty chat log</button>
+      <button class="btn ghost sm" onclick="openAlliancePass()">🔑 Alliance passcode</button>
+    </div>
   </div>
   <div class="card" id="restore-card" style="margin-top:12px;display:none;border-color:rgba(93,211,158,.4)">
     <div style="font-weight:600; margin-bottom:6px">🛟 Backup found on this device</div>
@@ -1206,6 +1227,29 @@ async function renderAccountUI(){
         </div>
       </div>`).join('');
   }catch(e){if(!authFail(e))document.getElementById('admin-users').innerHTML='<p class="toolbar-note">Could not load accounts.</p>';}
+}
+async function openAlliancePass(){
+  try{
+    const cur=await rpc('get_alliance_pass',{tok:TOK});
+    showModal(`<h3>🔑 Alliance passcode</h3>
+      <p class="toolbar-note" style="margin-top:6px">New members use this to sign up, and it verifies self-service password resets. Changing it does NOT log anyone out — it only affects future signups.</p>
+      <div style="background:rgba(10,18,32,.8);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-top:10px;font-family:Consolas,monospace;font-size:15px">Current: <b style="color:var(--ice)">${esc(cur)}</b></div>
+      <label>New passcode (4+ characters, leave blank to keep current)</label>
+      <input id="f-apnew" placeholder="e.g. Bear82">
+      <p id="ap-err" style="font-size:12px;color:var(--red);min-height:14px;margin-top:6px"></p>
+      <div class="actions">
+        <button class="btn ghost" onclick="closeModal()">Close</button>
+        <button class="btn" onclick="saveAlliancePass()">Save</button>
+      </div>`);
+  }catch(e){authFail(e);}
+}
+async function saveAlliancePass(){
+  const np=val('f-apnew');
+  if(!np){closeModal();return;}
+  try{
+    await rpc('set_alliance_pass',{tok:TOK,newpass:np});
+    closeModal();
+  }catch(e){document.getElementById('ap-err').textContent=e.message;}
 }
 async function openAdminChatLog(){
   try{
