@@ -126,27 +126,62 @@ footer .links{gap:7px}
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Duties, event countdowns & reminder messages for your Whiteout Survival alliance</p>
     </div>
     <div style="display:flex;gap:6px;margin-bottom:14px">
-      <button class="btn" id="lm-join" style="flex:1" onclick="lockMode('join')">Join my alliance</button>
-      <button class="btn ghost" id="lm-create" style="flex:1" onclick="lockMode('create')">Start a new one</button>
+      <button class="btn" id="lm-signin" style="flex:1" onclick="lockMode('signin')">Sign in</button>
+      <button class="btn ghost" id="lm-register" style="flex:1" onclick="lockMode('register')">Join alliance</button>
+      <button class="btn ghost" id="lm-create" style="flex:1" onclick="lockMode('create')">New alliance</button>
     </div>
-    <div id="lock-join">
+    <div id="lock-signin">
+      <label>Email</label>
+      <input id="s-email" type="email" placeholder="you@email.com" autocapitalize="none">
+      <label>Password</label>
+      <input type="password" id="s-pass" placeholder="Password" onkeydown="if(event.key==='Enter')signIn()">
+      <button class="btn" style="width:100%;padding:11px;margin-top:14px" onclick="signIn()">Sign in</button>
+      <p style="font-size:11px;color:var(--muted);margin-top:8px"><a href="#" onclick="event.preventDefault();lockMode('reset')" style="color:var(--ice)">Forgot your password?</a> Reset it with your alliance passcode.</p>
+    </div>
+    <div id="lock-reset" style="display:none">
+      <label>Your account email</label>
+      <input id="x-email" type="email" placeholder="you@email.com" autocapitalize="none">
       <label>Alliance code</label>
-      <input id="j-aid" placeholder="e.g. unf" autocapitalize="none">
-      <label>Passcode</label>
-      <input type="password" id="j-pass" placeholder="Passcode" onkeydown="if(event.key==='Enter')unlock()">
-      <button class="btn" style="width:100%;padding:11px;margin-top:14px" onclick="unlock()">Enter</button>
+      <input id="x-aid" placeholder="e.g. unf" autocapitalize="none">
+      <label>Alliance passcode (from your R5/R4)</label>
+      <input id="x-apass" placeholder="Passcode">
+      <label>New password (6+ characters)</label>
+      <input type="password" id="x-pass" placeholder="New password">
+      <button class="btn" style="width:100%;padding:11px;margin-top:14px" onclick="selfReset()">Reset password</button>
+      <p style="font-size:11px;color:var(--muted);margin-top:8px"><a href="#" onclick="event.preventDefault();lockMode('signin')" style="color:var(--ice)">← Back to sign in</a></p>
+    </div>
+    <div id="lock-register" style="display:none">
+      <label>Your in-game username — EXACTLY as it appears in WOS</label>
+      <input id="r-name" placeholder="e.g. Warrior~Princess">
+      <label>Email</label>
+      <input id="r-email" type="email" placeholder="you@email.com" autocapitalize="none">
+      <label>Choose a password (6+ characters)</label>
+      <input type="password" id="r-pass" placeholder="Password">
+      <label>Alliance code</label>
+      <input id="r-aid" placeholder="e.g. unf" autocapitalize="none">
+      <label>Alliance passcode (from your R5/R4)</label>
+      <input id="r-apass" placeholder="Passcode">
+      <button class="btn" style="width:100%;padding:11px;margin-top:14px" onclick="registerAcct()">Create my login</button>
+      <p style="font-size:11px;color:var(--muted);margin-top:8px">New members start view-only until an admin promotes them.</p>
     </div>
     <div id="lock-create" style="display:none">
       <label>Alliance name</label>
       <input id="c-name" placeholder="e.g. UNF United Front">
       <label>State #</label>
       <input id="c-state" placeholder="e.g. 3400">
-      <label>Pick an alliance code (short, no spaces — your team types this to join)</label>
+      <label>Pick an alliance code (short, no spaces)</label>
       <input id="c-aid" placeholder="e.g. unf3400" autocapitalize="none">
-      <label>Pick a passcode (share it only with your team)</label>
-      <input id="c-pass" placeholder="At least 4 characters">
-      <button class="btn" style="width:100%;padding:11px;margin-top:14px" onclick="createAlliance()">Create alliance ❄</button>
-      <p style="font-size:11px;color:var(--muted);margin-top:8px">Starts pre-loaded with a full WOS duty template — bear traps, SvS, Foundry, onboarding & more.</p>
+      <label>Pick an alliance passcode (share with your team so they can join)</label>
+      <input id="c-apass" placeholder="At least 4 characters">
+      <label style="margin-top:14px;color:var(--ice)">Your admin login</label>
+      <label>Your in-game username</label>
+      <input id="c-uname" placeholder="e.g. Strata">
+      <label>Email</label>
+      <input id="c-email" type="email" placeholder="you@email.com" autocapitalize="none">
+      <label>Password (6+ characters)</label>
+      <input type="password" id="c-pass" placeholder="Password">
+      <button class="btn" style="width:100%;padding:11px;margin-top:14px" onclick="createAlliance2()">Create alliance ❄</button>
+      <p style="font-size:11px;color:var(--muted);margin-top:8px">You become the ADMIN. Starts pre-loaded with a full WOS duty template.</p>
     </div>
     <p id="lock-err" style="font-size:12px;color:var(--red);margin-top:10px;min-height:16px;text-align:center"></p>
   </div>
@@ -175,7 +210,7 @@ footer .links{gap:7px}
 <section class="tab on" id="tab-duties">
   <div class="bar">
     <h2>Task allocation</h2>
-    <button class="btn" onclick="openDuty()">+ Add task</button>
+    <button class="btn" id="btn-add-task" onclick="openDuty()">+ Add task</button>
   </div>
   <div class="filter-row">
     <select id="duty-filter" onchange="renderDuties()"><option value="">Everyone's tasks</option></select>
@@ -188,7 +223,7 @@ footer .links{gap:7px}
 <section class="tab" id="tab-codes">
   <div class="bar">
     <h2>Gift codes</h2>
-    <button class="btn" onclick="openCode()">+ Add code</button>
+    <button class="btn" id="btn-add-code" onclick="openCode()">+ Add code</button>
   </div>
   <p class="toolbar-note" style="margin-bottom:12px">Tap a code to copy it, then redeem it with the 🎁 GC Redeem link below. You can also copy your ID from the team roster.</p>
   <div id="code-list"></div>
@@ -197,19 +232,30 @@ footer .links{gap:7px}
 <section class="tab" id="tab-team">
   <div class="bar">
     <h2>R4 / R5 team</h2>
-    <button class="btn" onclick="openMember()">+ Add person</button>
+    <button class="btn" id="btn-add-person" onclick="openMember()">+ Add person</button>
   </div>
   <div id="team-list"></div>
   <div class="card" style="margin-top:18px">
+    <div style="font-weight:600; margin-bottom:6px">My account</div>
+    <p class="toolbar-note" id="acct-info" style="margin-bottom:8px"></p>
+    <div style="display:flex; gap:8px; flex-wrap:wrap">
+      <button class="btn ghost sm" onclick="openChangePass()">Change password</button>
+      <button class="btn ghost sm" onclick="logOut()">Sign out</button>
+    </div>
+  </div>
+  <div class="card" id="admin-panel" style="margin-top:12px;display:none">
+    <div style="font-weight:600; margin-bottom:6px">App accounts <span class="toolbar-note">(admin only)</span></div>
+    <div id="admin-users"></div>
+  </div>
+  <div class="card" style="margin-top:12px">
     <div style="font-weight:600; margin-bottom:6px">Invite & data</div>
     <div style="display:flex; gap:8px; flex-wrap:wrap">
       <button class="btn" onclick="copyInvite(this)">📨 Copy invite for your team</button>
       <button class="btn ghost sm" onclick="exportData()">⬇ Export backup</button>
-      <button class="btn ghost sm" onclick="document.getElementById('import-file').click()">⬆ Import</button>
+      <button class="btn ghost sm" id="btn-import" onclick="document.getElementById('import-file').click()">⬆ Import</button>
       <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
-      <button class="btn ghost sm" onclick="switchAlliance()">Switch alliance</button>
     </div>
-    <p class="toolbar-note" style="margin-top:8px">The invite copies your link, alliance code & passcode — paste it in your private team chat.</p>
+    <p class="toolbar-note" style="margin-top:8px">Tell new members to sign up with their EXACT in-game username.</p>
   </div>
 </section>
 
@@ -294,8 +340,21 @@ const SYNC={
   rpc:'https://pxzkbrgmosykxmkevgek.supabase.co/rest/v1/rpc/',
   key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4emticmdtb3N5a3hta2V2Z2VrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ5OTk5MjEsImV4cCI6MjEwMDU3NTkyMX0.KAOw0C45CLlVUeNPLubh6nQUQlpDNYCG5xhHMU8YQ3E'
 };
-let PASS=localStorage.getItem('wos-pass')||'';
+let TOK=localStorage.getItem('wos-tok')||'';
 let AID=localStorage.getItem('wos-aid')||'';
+let ROLE='', UNAME='', UEMAIL='';
+function CANedit(){return ['ADMIN','R5','R4'].includes(ROLE);}
+function CANmanage(){return ['ADMIN','R5'].includes(ROLE);}
+function CANadmin(){return ROLE==='ADMIN';}
+async function rpc(name,body){
+  const r=await fetch(SYNC.rpc+name,{method:'POST',headers:syncHeaders(),body:JSON.stringify(body)});
+  if(!r.ok){
+    const j=await r.json().catch(()=>({}));
+    throw new Error(j.message||('error '+r.status));
+  }
+  const txt=await r.text();
+  return txt?JSON.parse(txt):null;
+}
 let S=load();
 let TZ=localStorage.getItem('wos-tz')||Intl.DateTimeFormat().resolvedOptions().timeZone;
 let lastSynced=0, syncTimer=null;
@@ -316,56 +375,74 @@ function setSyncUI(ok){
 }
 function syncHeaders(){return {apikey:SYNC.key,Authorization:'Bearer '+SYNC.key,'Content-Type':'application/json'};}
 function lockMode(m){
-  document.getElementById('lock-join').style.display=m==='join'?'block':'none';
-  document.getElementById('lock-create').style.display=m==='create'?'block':'none';
-  document.getElementById('lm-join').className='btn'+(m==='join'?'':' ghost');
-  document.getElementById('lm-create').className='btn'+(m==='create'?'':' ghost');
+  ['signin','register','create','reset'].forEach(x=>{
+    const p=document.getElementById('lock-'+x);
+    if(p)p.style.display=m===x?'block':'none';
+    const b=document.getElementById('lm-'+x);
+    if(b)b.className='btn'+(m===x?'':' ghost');
+  });
   document.getElementById('lock-err').textContent='';
+}
+async function selfReset(){
+  const err=document.getElementById('lock-err');
+  try{
+    await rpc('self_reset',{p_email:val('x-email'),p_aid:document.getElementById('x-aid').value.trim().toLowerCase(),p_apass:val('x-apass'),newp:document.getElementById('x-pass').value});
+    err.style.color='var(--green)';
+    err.textContent='Password reset! Sign in with your new password.';
+    lockMode('signin');
+    err.textContent='Password reset! Sign in with your new password.';
+    setTimeout(()=>{err.style.color='var(--red)';err.textContent='';},4000);
+  }catch(e){err.style.color='var(--red)';err.textContent=e.message;}
 }
 function showLock(msg){
   document.getElementById('lock').style.display='flex';
   document.getElementById('lock-err').textContent=msg||'';
 }
 function hideLock(){document.getElementById('lock').style.display='none';window.scrollTo(0,0);}
-async function unlock(){
-  const a=document.getElementById('j-aid').value.trim().toLowerCase();
-  const p=document.getElementById('j-pass').value.trim();
-  if(!a||!p){document.getElementById('lock-err').textContent='Enter your alliance code and passcode';return;}
-  document.getElementById('lock-err').textContent='';
-  const ok=await pullRemote(p,a);
-  if(ok){
-    PASS=p;AID=a;
-    localStorage.setItem('wos-pass',p);localStorage.setItem('wos-aid',a);
-    localStorage.setItem(cacheKey(),JSON.stringify(S));
-    hideLock();renderAll();
-  }else{
-    document.getElementById('lock-err').textContent='Wrong alliance code or passcode';
-  }
+function applyAuth(j){
+  TOK=j.token;ROLE=j.role;UNAME=j.name;UEMAIL=j.email;AID=j.aid;
+  localStorage.setItem('wos-tok',TOK);
+  localStorage.setItem('wos-aid',AID);
 }
-async function createAlliance(){
-  const nm=document.getElementById('c-name').value.trim();
-  const st=document.getElementById('c-state').value.trim();
-  const a=document.getElementById('c-aid').value.trim().toLowerCase();
-  const p=document.getElementById('c-pass').value.trim();
+async function signIn(){
   const err=document.getElementById('lock-err');
-  if(!nm||!st||!a||!p){err.textContent='Fill in all four fields';return;}
+  const em=document.getElementById('s-email').value.trim(), pw=document.getElementById('s-pass').value;
+  if(!em||!pw){err.textContent='Enter your email and password';return;}
+  err.textContent='';
+  try{
+    applyAuth(await rpc('login',{p_email:em,p_pass:pw}));
+    hideLock();await pullRemote();renderAll();fetchCommunity();
+  }catch(e){err.textContent=e.message.includes('wrong')?'Wrong email or password':e.message;}
+}
+async function registerAcct(){
+  const err=document.getElementById('lock-err');
+  const nm=document.getElementById('r-name').value.trim(), em=document.getElementById('r-email').value.trim(),
+        pw=document.getElementById('r-pass').value, a=document.getElementById('r-aid').value.trim().toLowerCase(),
+        ap=document.getElementById('r-apass').value.trim();
+  if(!nm||!em||!pw||!a||!ap){err.textContent='Fill in every field';return;}
+  err.textContent='';
+  try{
+    applyAuth(await rpc('register',{p_email:em,p_pass:pw,p_name:nm,p_aid:a,p_apass:ap}));
+    hideLock();await pullRemote();renderAll();fetchCommunity();
+  }catch(e){err.textContent=e.message;}
+}
+async function createAlliance2(){
+  const err=document.getElementById('lock-err');
+  const nm=document.getElementById('c-name').value.trim(), st=document.getElementById('c-state').value.trim(),
+        a=document.getElementById('c-aid').value.trim().toLowerCase(), ap=document.getElementById('c-apass').value.trim(),
+        un=document.getElementById('c-uname').value.trim(), em=document.getElementById('c-email').value.trim(),
+        pw=document.getElementById('c-pass').value;
+  if(!nm||!st||!a||!ap||!un||!em||!pw){err.textContent='Fill in every field';return;}
   if(!/^[a-z0-9-]{2,24}$/.test(a)){err.textContent='Alliance code: 2–24 letters, numbers, or dashes only';return;}
-  if(p.length<4){err.textContent='Passcode needs at least 4 characters';return;}
   err.textContent='';
   const fresh=TEMPLATE(nm,st);
   try{
-    const r=await fetch(SYNC.rpc+'create_alliance',{method:'POST',headers:syncHeaders(),body:JSON.stringify({aid:a,pass:p,new_data:fresh})});
-    if(!r.ok){
-      const body=await r.json().catch(()=>({}));
-      err.textContent=(body.message||'').includes('taken')?'That alliance code is taken — pick another':'Could not create — check the fields and try again';
-      return;
-    }
-    S=fresh;AID=a;PASS=p;
-    localStorage.setItem('wos-aid',a);localStorage.setItem('wos-pass',p);
+    applyAuth(await rpc('create_alliance2',{p_aid:a,p_apass:ap,p_aname:nm,p_state:st,p_email:em,p_pass:pw,p_uname:un,new_data:fresh}));
+    S=fresh;
     localStorage.setItem(cacheKey(),JSON.stringify(S));
     lastSynced=Date.now();
-    hideLock();renderAll();
-  }catch(e){err.textContent='Connection problem — try again';}
+    hideLock();renderAll();fetchCommunity();
+  }catch(e){err.textContent=e.message.includes('taken')?'That alliance code is taken — pick another':e.message;}
 }
 function mergeState(R){
   if(!R)return;
@@ -395,50 +472,57 @@ function mergeState(R){
   if(R.meta&&!(S.meta&&S.meta.name))S.meta=R.meta;
   if(R.teamOrdered)S.teamOrdered=true;
 }
+function authFail(e){
+  if(/session|expired|admin only/.test(e.message)){
+    TOK='';localStorage.removeItem('wos-tok');
+    showLock('Session expired — sign in again');
+    return true;
+  }
+  return false;
+}
 async function pushRemote(){
-  if(!PASS||!AID)return;
+  if(!TOK||ROLE==='R3')return;
   try{
-    const g=await fetch(SYNC.rpc+'get_state',{method:'POST',headers:syncHeaders(),body:JSON.stringify({aid:AID,pass:PASS})});
-    if(g.ok){
-      const row=await g.json();
+    try{
+      const row=await rpc('get_state2',{tok:TOK});
       if(row&&row.data&&new Date(row.updated_at).getTime()>lastSynced){
         mergeState(row.data);
         renderAll();
       }
-    }
+    }catch(e){}
     const now=new Date().toISOString();
-    const r=await fetch(SYNC.rpc+'put_state',{method:'POST',headers:syncHeaders(),body:JSON.stringify({aid:AID,pass:PASS,new_data:S,ts:now,v:2})});
-    if(r.status===400||r.status===401||r.status===403){PASS='';localStorage.removeItem('wos-pass');showLock('Passcode changed — enter the new one');return;}
-    if(!r.ok)throw new Error(r.status);
+    await rpc('put_state2',{tok:TOK,new_data:S,ts:now});
     lastSynced=new Date(now).getTime();
     setSyncUI(true);
-  }catch(e){setSyncUI(false);}
+  }catch(e){
+    if(authFail(e))return;
+    if(/read only/.test(e.message)){ROLE='R3';applyRoleUI();return;}
+    setSyncUI(false);
+  }
 }
-async function pullRemote(tryPass,tryAid){
-  const p=tryPass||PASS, a=tryAid||AID;
-  if(!p||!a){showLock();return false;}
+async function pullRemote(){
+  if(!TOK){showLock();return false;}
   try{
-    const r=await fetch(SYNC.rpc+'get_state',{method:'POST',headers:syncHeaders(),body:JSON.stringify({aid:a,pass:p})});
-    if(r.status===400||r.status===401||r.status===403){
-      if(!tryPass){PASS='';localStorage.removeItem('wos-pass');showLock('Passcode changed — enter the new one');}
-      return false;
-    }
-    if(!r.ok)throw new Error(r.status);
-    const row=await r.json();
+    const row=await rpc('get_state2',{tok:TOK});
+    if(row.role&&row.role!==ROLE){ROLE=row.role;applyRoleUI();}
+    UNAME=row.name||UNAME;
     if(row&&row.data){
       const remoteTime=new Date(row.updated_at).getTime();
       if(remoteTime>lastSynced&&!document.getElementById('modal-bg').classList.contains('on')){
         S=row.data;
-        localStorage.setItem('wos-hq-'+a,JSON.stringify(S));
+        localStorage.setItem(cacheKey(),JSON.stringify(S));
         lastSynced=remoteTime;
         renderAll();
       }
       setSyncUI(true);
     }
     return true;
-  }catch(e){setSyncUI(false);return false;}
+  }catch(e){
+    if(authFail(e))return false;
+    setSyncUI(false);return false;
+  }
 }
-setInterval(()=>pullRemote(),20000);
+setInterval(()=>{if(TOK)pullRemote();},20000);
 function uid(){return 'x'+Math.random().toString(36).slice(2,9);}
 function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function val(id){return document.getElementById(id).value.trim();}
@@ -529,6 +613,7 @@ function dueDD(d){
   return utcDay(Date.parse(d.next))-utcDay(Date.now());
 }
 function markDone(id){
+  if(!CANedit())return;
   const d=S.duties.find(x=>x.id===id);
   let t=utcDay(Date.parse(d.next))*DAY;
   const step=d.days*DAY, today=utcDay(Date.now());
@@ -601,16 +686,16 @@ function renderDuties(){
           <div style="flex:1;min-width:0">
             <div class="duty-name">${esc(d.name)}</div>
             ${sub?`<div class="duty-freq">${sub}</div>`:''}
-            <div class="chips" onclick="openDuty('${d.id}')" style="cursor:pointer" title="Tap to change who's assigned"><span class="chip-label">Main:</span>${p}</div>
-            <div class="chips" onclick="openDuty('${d.id}')" style="cursor:pointer" title="Tap to change who's assigned"><span class="chip-label">Backup:</span>${b}</div>
+            <div class="chips" ${CANedit()?`onclick="openDuty('${d.id}')" style="cursor:pointer" title="Tap to change who's assigned"`:''}><span class="chip-label">Main:</span>${p}</div>
+            <div class="chips" ${CANedit()?`onclick="openDuty('${d.id}')" style="cursor:pointer" title="Tap to change who's assigned"`:''}><span class="chip-label">Backup:</span>${b}</div>
           </div>
           <div class="row-actions">
             ${dueBadge(d)}
-            <button class="btn ghost sm" onclick="openDuty('${d.id}')" title="Edit task" style="color:var(--muted);font-size:14px">✎</button>
+            ${CANedit()?`<button class="btn ghost sm" onclick="openDuty('${d.id}')" title="Edit task" style="color:var(--muted);font-size:14px">✎</button>`:''}
           </div>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
-          <div>${dueDD(d)===0?`<button class="btn sm" style="background:rgba(93,211,158,.15);border:1px solid rgba(93,211,158,.4);color:var(--green);box-shadow:none" onclick="markDone('${d.id}')" title="Done for today — jump to the next one">✓ Done</button>`:''}</div>
+          <div>${CANedit()&&dueDD(d)===0?`<button class="btn sm" style="background:rgba(93,211,158,.15);border:1px solid rgba(93,211,158,.4);color:var(--green);box-shadow:none" onclick="markDone('${d.id}')" title="Done for today — jump to the next one">✓ Done</button>`:''}</div>
           <button class="btn ghost sm" onclick="openMsgs('${d.id}')" title="Alliance message templates">💬${nMsgs?' '+nMsgs:''}</button>
         </div>
       </div>`;
@@ -643,7 +728,7 @@ function renderTeam(){
     const nb=S.duties.filter(d=>d.backup.includes(p.name)).length;
     return `<div class="card member" data-pid="${p.id}">
       <div style="display:flex;align-items:center;gap:8px;min-width:0">
-        <span class="drag-h" style="cursor:grab;touch-action:none;padding:6px 8px;margin-left:-6px;color:var(--muted);user-select:none">☰</span>
+        ${CANmanage()?'<span class="drag-h" style="cursor:grab;touch-action:none;padding:6px 8px;margin-left:-6px;color:var(--muted);user-select:none">☰</span>':''}
         <div style="display:flex;flex-direction:column;gap:7px;min-width:0;padding:3px 0">
           <div style="display:flex;align-items:center;gap:8px"><span class="nm">${esc(p.name)}</span> <span class="chip norm">${esc(p.role)}</span></div>
           ${p.wosId?`<div><button class="chip norm" id="wid-${p.id}" style="cursor:pointer;white-space:nowrap" onclick="copyWosId('${p.id}')" title="Tap to copy WOS ID">🆔 ${esc(p.wosId)}</button></div>`:''}
@@ -651,7 +736,7 @@ function renderTeam(){
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
         <span class="duties-count" style="white-space:nowrap">${n} task${n===1?'':'s'}</span>
-        <button class="btn ghost sm" onclick="openMember('${p.id}')">Edit</button>
+        ${CANmanage()?`<button class="btn ghost sm" onclick="openMember('${p.id}')">Edit</button>`:''}
       </div>
     </div>`;
   }).join('');
@@ -689,6 +774,55 @@ function endTeamDrag(){
 document.addEventListener('pointerup',endTeamDrag);
 document.addEventListener('pointercancel',endTeamDrag);
 
+async function renderAccountUI(){
+  const info=document.getElementById('acct-info');
+  if(info)info.textContent='Signed in as '+UNAME+' ('+ROLE+') · '+UEMAIL;
+  const panel=document.getElementById('admin-panel');
+  if(!CANadmin()){if(panel)panel.style.display='none';return;}
+  panel.style.display='';
+  try{
+    const users=await rpc('list_users',{tok:TOK});
+    document.getElementById('admin-users').innerHTML=users.map(u=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-bottom:1px dashed rgba(110,198,255,.12);flex-wrap:wrap">
+        <div style="min-width:0"><b style="font-size:13px">${esc(u.name)}</b> <span class="toolbar-note">${esc(u.email)}</span></div>
+        <div style="display:flex;gap:6px;align-items:center">
+          ${u.role==='ADMIN'?'<span class="chip">ADMIN</span>':`
+          <select style="width:auto;padding:3px 6px;font-size:12px" onchange="adminSetRole('${u.id}',this.value)">
+            ${['R5','R4','R3'].map(r=>`<option ${u.role===r?'selected':''}>${r}</option>`).join('')}
+          </select>
+          <button class="btn ghost sm" onclick="adminEditUser('${u.id}','${esc(u.name)}')">✎</button>`}
+        </div>
+      </div>`).join('');
+  }catch(e){if(!authFail(e))document.getElementById('admin-users').innerHTML='<p class="toolbar-note">Could not load accounts.</p>';}
+}
+async function adminSetRole(id,role){
+  try{await rpc('set_role',{tok:TOK,target:id,newrole:role});renderAccountUI();}catch(e){authFail(e);}
+}
+function adminEditUser(id,name){
+  showModal(`<h3>Account: ${name}</h3>
+    <label>In-game username (fix typos here)</label><input id="f-auname" value="${name}">
+    <label>Set a new password for them (optional)</label><input id="f-aupass" placeholder="Leave blank to keep current">
+    <p id="au-err" style="font-size:12px;color:var(--red);min-height:14px;margin-top:6px"></p>
+    <div class="actions">
+      <button class="btn danger sm" onclick="adminRemoveUser('${id}',this)">Remove account</button>
+      <button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn" onclick="adminSaveUser('${id}')">Save</button>
+    </div>`);
+}
+async function adminSaveUser(id){
+  try{
+    const nm=val('f-auname'), pw=val('f-aupass');
+    if(nm)await rpc('admin_set_name',{tok:TOK,target:id,newname:nm});
+    if(pw)await rpc('admin_reset_pass',{tok:TOK,target:id,newp:pw});
+    closeModal();renderAccountUI();
+  }catch(e){document.getElementById('au-err').textContent=e.message;}
+}
+async function adminRemoveUser(id,btn){
+  if(btn&&!armed(btn))return;
+  try{await rpc('remove_user',{tok:TOK,target:id});closeModal();renderAccountUI();}
+  catch(e){document.getElementById('au-err').textContent=e.message;}
+}
+
 const bg=document.getElementById('modal-bg'), modal=document.getElementById('modal');
 function closeModal(){bg.classList.remove('on');}
 function showModal(html){modal.innerHTML=html;bg.classList.add('on');}
@@ -697,6 +831,7 @@ function armed(btn){if(btn.dataset.a)return true;btn.dataset.a='1';btn.textConte
 
 let pickP=[],pickB=[];
 function openDuty(id){
+  if(!CANedit())return;
   const d=id?S.duties.find(x=>x.id===id):{cat:"Events",name:"",freq:"",primary:[],backup:[],notes:"",msgs:[]};
   pickP=[...d.primary];pickB=[...d.backup];
   let dateVal='';
@@ -745,17 +880,18 @@ function openMsgs(dutyId){
   const d=S.duties.find(x=>x.id===dutyId);
   const rows=(d.msgs||[]).map(m=>`<div class="msg-row" style="margin-top:8px">
       <button class="btn sm" id="cp-${m.id}" onclick="copyMsg('${dutyId}','${m.id}')">📋 Copy</button>
-      <span class="t" onclick="openDutyMsg('${dutyId}','${m.id}')" title="Tap to edit">${esc(m.title)}</span>
+      ${CANedit()?`<span class="t" onclick="openDutyMsg('${dutyId}','${m.id}')" title="Tap to edit">${esc(m.title)}</span>`:`<span class="t" style="cursor:default">${esc(m.title)}</span>`}
     </div>`).join('')||'<p class="toolbar-note" style="margin-top:8px">No saved messages yet.</p>';
   showModal(`<h3>💬 ${esc(d.name)}</h3>
     <div class="msgs-label" style="margin-top:6px">Alliance message templates</div>
     ${rows}
     <div class="actions">
       <button class="btn ghost" onclick="closeModal()">Close</button>
-      <button class="btn" onclick="openDutyMsg('${dutyId}')">+ New template</button>
+      ${CANedit()?`<button class="btn" onclick="openDutyMsg('${dutyId}')">+ New template</button>`:''}
     </div>`);
 }
 function openDutyMsg(dutyId,msgId){
+  if(!CANedit())return;
   const d=S.duties.find(x=>x.id===dutyId);
   const m=msgId?(d.msgs||[]).find(x=>x.id===msgId):{title:"",body:""};
   showModal(`<h3>${msgId?'Edit message':'New message'} — ${esc(d.name)}</h3>
@@ -805,8 +941,8 @@ function renderCodes(){
         ${c.note?`<span class="toolbar-note">${esc(c.note)}</span>`:''}
       </div>
       <div style="display:flex;gap:6px;align-items:center">
-        <button class="btn ghost sm" onclick="toggleCode('${c.id}')">${c.expired?'Expired — revive?':'Mark expired'}</button>
-        <button class="btn danger sm" onclick="delCode('${c.id}',this)">✕</button>
+        ${CANedit()?`<button class="btn ghost sm" onclick="toggleCode('${c.id}')">${c.expired?'Expired — revive?':'Mark expired'}</button>
+        <button class="btn danger sm" onclick="delCode('${c.id}',this)">✕</button>`:''}
       </div>
     </div>`).join('');
   if(CC){
@@ -851,6 +987,7 @@ function delCode(id,btn){
   save();renderCodes();
 }
 function openCode(id){
+  if(!CANedit())return;
   const c=id?S.codes.find(x=>x.id===id):{code:"",note:""};
   showModal(`<h3>${id?'Edit code':'New gift code'}</h3>
     <label>Code</label><input id="f-gcode" value="${esc(c.code)}" placeholder="e.g. WOS2026SNOW" autocapitalize="characters">
@@ -879,6 +1016,7 @@ function copyWosId(pid){
   });
 }
 function openMember(id){
+  if(!CANmanage())return;
   const p=id?S.team.find(x=>x.id===id):{name:"",role:"R4",wosId:""};
   showModal(`<h3>${id?'Edit person':'New person'}</h3>
     <label>Name (in-game)</label><input id="f-pname" value="${esc(p.name)}">
@@ -911,35 +1049,78 @@ function delMember(id,btn){
 
 function renderHeader(){
   const m=S.meta||{};
-  document.getElementById('hq-name').textContent=m.name||'Alliance HQ';
+  const el=document.getElementById('hq-name');
+  el.textContent=m.name||'Alliance HQ';
+  el.style.cursor=CANmanage()?'pointer':'default';
+  el.title=CANmanage()?'Tap to edit alliance name & state':'';
+  el.onclick=CANmanage()?openMeta:null;
   document.getElementById('hq-state').textContent=m.state?'· State '+m.state:'';
   document.title=(m.name?m.name+' — ':'')+'WOS Alliance HQ';
+}
+function applyRoleUI(){
+  const e=CANedit(),g=CANmanage();
+  const set=(id,on)=>{const x=document.getElementById(id);if(x)x.style.display=on?'':'none';};
+  set('btn-add-task',e);set('btn-add-code',e);set('btn-add-person',g);
 }
 function copyInvite(btn){
   const m=S.meta||{};
   const txt='❄ '+(m.name||'Our alliance')+' HQ — duties, events & reminders\n'+
     'Link: https://ambriah83.github.io/wos-hq/?a='+AID+'\n'+
-    'Alliance code: '+AID+'\nPasscode: '+PASS;
+    'Tap "Join alliance", use alliance code "'+AID+'" + our passcode (ask me), and put your EXACT in-game username.';
   navigator.clipboard.writeText(txt).then(()=>{
     btn.textContent='✓ Copied — paste it in your team chat';
     setTimeout(()=>{btn.textContent='📨 Copy invite for your team';},2500);
   });
 }
-function switchAlliance(){
-  AID='';PASS='';
-  localStorage.removeItem('wos-aid');localStorage.removeItem('wos-pass');
-  document.getElementById('j-aid').value='';document.getElementById('j-pass').value='';
-  lockMode('join');showLock();
+async function logOut(){
+  try{await rpc('logout',{tok:TOK});}catch(e){}
+  TOK='';ROLE='';UNAME='';
+  localStorage.removeItem('wos-tok');
+  lockMode('signin');showLock();
+}
+function openMeta(){
+  if(!CANmanage())return;
+  const m=S.meta||{};
+  showModal(`<h3>Alliance details</h3>
+    <label>Alliance name</label><input id="f-aname" value="${esc(m.name||'')}">
+    <label>State #</label><input id="f-astate" value="${esc(m.state||'')}">
+    <div class="actions">
+      <button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn" onclick="saveMeta()">Save</button>
+    </div>`);
+}
+function saveMeta(){
+  const nm=val('f-aname'),st=val('f-astate');
+  if(!nm){document.getElementById('f-aname').focus();return;}
+  S.meta={name:nm,state:st};
+  save();closeModal();renderHeader();
+}
+function openChangePass(){
+  showModal(`<h3>Change password</h3>
+    <label>Current password</label><input type="password" id="f-oldp">
+    <label>New password (6+ characters)</label><input type="password" id="f-newp">
+    <p id="cp-err" style="font-size:12px;color:var(--red);min-height:14px;margin-top:6px"></p>
+    <div class="actions">
+      <button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn" onclick="doChangePass()">Save</button>
+    </div>`);
+}
+async function doChangePass(){
+  try{
+    await rpc('change_pass',{tok:TOK,oldp:document.getElementById('f-oldp').value,newp:document.getElementById('f-newp').value});
+    closeModal();
+  }catch(e){document.getElementById('cp-err').textContent=e.message;}
 }
 function renderLinks(){
   if(!S.links)S.links=TEMPLATE('','').links;
   document.getElementById('links-bar').innerHTML=S.links.map(l=>
     l.url
       ?`<a class="linkbtn" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}</a>`
-      :`<button class="linkbtn" style="border-style:dashed;opacity:.75;background:transparent;cursor:pointer;font-family:inherit" onclick="openLinkEdit('${l.id}')" title="No URL yet — tap to add it">${esc(l.label)} <span style="font-size:11px;color:var(--muted)">+ set URL</span></button>`
-  ).join('')+`<button class="btn ghost sm" onclick="openLinkEdit()">+ Add link</button>`;
+      :(CANmanage()?`<button class="linkbtn" style="border-style:dashed;opacity:.75;background:transparent;cursor:pointer;font-family:inherit" onclick="openLinkEdit('${l.id}')" title="No URL yet — tap to add it">${esc(l.label)} <span style="font-size:11px;color:var(--muted)">+ set URL</span></button>`:'')
+  ).join('')+(CANmanage()?`<button class="btn ghost sm" onclick="openLinkEdit()">+ Add link</button>`:'');
 }
 function openLinkEdit(id){
+  if(!CANmanage())return;
   const l=id?S.links.find(x=>x.id===id):{label:"",url:""};
   showModal(`<h3>${id?'Edit link':'New link'}</h3>
     <label>Label</label><input id="f-llabel" value="${esc(l.label)}">
@@ -969,11 +1150,26 @@ function importData(ev){
   r.onload=()=>{try{S=JSON.parse(r.result);save();renderAll();}catch(e){}};
   r.readAsText(f);
 }
-function renderAll(){renderHeader();renderDuties();renderTeam();renderLinks();renderCodes();}
-renderAll();fillTzSelect(document.getElementById('hdr-tz'));tickClocks();fetchCommunity();
+function renderAll(){renderHeader();renderDuties();renderTeam();renderLinks();renderCodes();applyRoleUI();renderAccountUI();}
+fillTzSelect(document.getElementById('hdr-tz'));tickClocks();
 const urlAid=new URLSearchParams(location.search).get('a');
-if(urlAid&&!AID)document.getElementById('j-aid').value=urlAid.toLowerCase();
-if(AID&&PASS){pullRemote();}else{showLock();}
+if(urlAid)document.getElementById('r-aid').value=urlAid.toLowerCase();
+(async()=>{
+  if(TOK){
+    try{
+      const m=await rpc('me',{tok:TOK});
+      ROLE=m.role;UNAME=m.name;UEMAIL=m.email;AID=m.aid;
+      localStorage.setItem('wos-aid',AID);
+      renderAll();
+      await pullRemote();
+      renderAll();fetchCommunity();
+      return;
+    }catch(e){TOK='';localStorage.removeItem('wos-tok');}
+  }
+  renderAll();
+  lockMode(urlAid?'register':'signin');
+  showLock();
+})();
 </script>
 </body>
 </html>
