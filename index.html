@@ -549,7 +549,7 @@ function mergeState(R){
   if(R.teamOrdered)S.teamOrdered=true;
 }
 function authFail(e){
-  if(/session|expired|admin only/.test(e.message)){
+  if(/session expired/i.test(String(e.message))){
     TOK='';localStorage.removeItem('wos-tok');
     showLock('Session expired — sign in again');
     return true;
@@ -766,9 +766,9 @@ function renderDuties(){
     const sortKey=d=>{
       const dd=dueDD(d);
       if(dd===null)return Infinity;
-      let frac=0;
-      if(d.time){const[h,m]=d.time.split(':').map(Number);frac=(h*60+m)*60000;}
-      return dd*DAY+frac;
+      let inst=utcDay(Date.parse(d.next))*DAY;
+      if(d.time){const[h,m]=d.time.split(':').map(Number);inst+=(h*60+m)*60000;}
+      return dd*1e13+inst;
     };
     const ds=S.duties.filter(d=>d.cat===cat&&(!filter||d.primary.includes(filter)||d.backup.includes(filter)))
       .sort((a,b)=>sortKey(a)-sortKey(b));
@@ -796,9 +796,17 @@ function renderDuties(){
             ${CANedit()?`<button class="btn ghost sm" onclick="openDuty('${d.id}')" title="Edit task" style="color:var(--muted);font-size:14px">✎</button>`:''}
           </div>
         </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
-          <div>${CANedit()&&dueDD(d)===0?`<button class="btn sm" style="background:rgba(93,211,158,.15);border:1px solid rgba(93,211,158,.4);color:var(--green);box-shadow:none" onclick="markDone('${d.id}')" title="Done for today — jump to the next one">✓ Done</button>`:''}</div>
-          <button class="btn ghost sm" onclick="openMsgs('${d.id}')" title="Alliance message templates">💬${nMsgs?' '+nMsgs:''}</button>
+        ${(d.legions||[]).length?`<div style="margin-top:8px;border-top:1px dashed rgba(110,198,255,.15);padding-top:6px">${d.legions.map(L=>`<div style="font-size:12px;color:var(--muted);padding:2px 0">⚔ <b style="color:var(--text)">${esc(L.name)}</b>${L.time?' · '+convTime(L.time):''} · 👑 ${L.leader&&L.leader.length?esc(L.leader.join(', ')):'<span style="color:var(--amber)">needs a lead</span>'}</div>`).join('')}</div>`:''}
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;gap:6px;flex-wrap:wrap">
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            ${CANedit()&&dueDD(d)===0?`<button class="btn sm" style="background:rgba(93,211,158,.15);border:1px solid rgba(93,211,158,.4);color:var(--green);box-shadow:none" onclick="markDone('${d.id}')" title="Done for today — jump to the next one">✓ Done</button>`:''}
+            ${scheduled&&d.cat==='Events'?`<button class="btn ghost sm" onclick="toggleRsvp('${d.id}')" ${(d.going||[]).includes(UNAME)?'style="color:var(--green);border-color:rgba(93,211,158,.4)"':''}>🙋 ${(d.going||[]).includes(UNAME)?"I'm in ✓":"I'm in"}</button>
+            <span class="chip norm" style="cursor:pointer" onclick="showGoing('${d.id}')" title="See who's going">${(d.going||[]).length} going</span>`:''}
+          </div>
+          <div style="display:flex;gap:6px">
+            ${CANedit()&&d.cat==='Events'?`<button class="btn ghost sm" onclick="openLegions('${d.id}')" title="Legions — leads & times">⚔${(d.legions||[]).length?' '+d.legions.length:''}</button>`:''}
+            <button class="btn ghost sm" onclick="openMsgs('${d.id}')" title="Alliance message templates">💬${nMsgs?' '+nMsgs:''}</button>
+          </div>
         </div>
       </div>`;
     }).join('');
@@ -885,6 +893,76 @@ function endTeamDrag(){
 document.addEventListener('pointerup',endTeamDrag);
 document.addEventListener('pointercancel',endTeamDrag);
 
+function convTime(hhmm){
+  const [h,m]=hhmm.split(':').map(Number);
+  const d=new Date();d.setUTCHours(h,m,0,0);
+  return d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit',timeZone:TZ})+' '+tzAbbr(TZ);
+}
+async function toggleRsvp(id){
+  const d=S.duties.find(x=>x.id===id);
+  const arr=d.going||[];
+  const me=arr.includes(UNAME);
+  d.going=me?arr.filter(x=>x!==UNAME):[...arr,UNAME];
+  localStorage.setItem(cacheKey(),JSON.stringify(S));
+  renderDuties();
+  try{await rpc('rsvp',{tok:TOK,p_duty:id,p_going:!me});}catch(e){authFail(e);}
+}
+function showGoing(id){
+  const d=S.duties.find(x=>x.id===id);
+  showModal(`<h3>🙋 Going — ${esc(d.name)}</h3>
+    ${(d.going||[]).map(n=>`<div style="padding:5px 0;border-bottom:1px dashed rgba(110,198,255,.1)">${esc(n)}</div>`).join('')||'<p class="toolbar-note" style="margin-top:8px">Nobody signed up yet — be first!</p>'}
+    <div class="actions"><button class="btn" onclick="closeModal()">Close</button></div>`);
+}
+let pickL=[];
+function openLegions(dutyId){
+  if(!CANedit())return;
+  const d=S.duties.find(x=>x.id===dutyId);
+  const rows=(d.legions||[]).map(L=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-bottom:1px dashed rgba(110,198,255,.12)">
+      <span style="font-size:13px">⚔ <b>${esc(L.name)}</b>${L.time?' · '+convTime(L.time):''} · ${L.leader&&L.leader.length?esc(L.leader.join(', ')):'—'}</span>
+      <button class="btn ghost sm" onclick="openLegionEdit('${dutyId}','${L.id}')">✎</button>
+    </div>`).join('')||'<p class="toolbar-note" style="margin-top:8px">No legions yet — add one per lane/legion with its lead and start time.</p>';
+  showModal(`<h3>⚔ Legions — ${esc(d.name)}</h3>
+    ${rows}
+    <div class="actions">
+      <button class="btn ghost" onclick="closeModal()">Close</button>
+      <button class="btn" onclick="openLegionEdit('${dutyId}')">+ Add legion</button>
+    </div>`);
+}
+function openLegionEdit(dutyId,legId){
+  const d=S.duties.find(x=>x.id===dutyId);
+  const L=legId?(d.legions||[]).find(x=>x.id===legId):{name:'Legion '+(((d.legions||[]).length)+1),leader:[],time:null};
+  pickL=[...(L.leader||[])];
+  showModal(`<h3>⚔ ${legId?'Edit legion':'New legion'} — ${esc(d.name)}</h3>
+    <label>Legion name</label><input id="f-lgname" value="${esc(L.name)}">
+    <label>👑 Game-plan lead (tap names)</label>
+    <div class="pill-multi">${S.team.map(p=>`<button class="${pickL.includes(p.name)?'sel':''}" onclick="const i=pickL.indexOf('${esc(p.name)}');if(i>=0){pickL.splice(i,1);this.classList.remove('sel');}else{pickL.push('${esc(p.name)}');this.classList.add('sel');}">${esc(p.name)}</button>`).join('')}</div>
+    <label>Battle time — server time UTC (optional)</label>
+    <div style="display:flex;gap:6px;align-items:center">
+      <select id="f-lgh" style="width:auto"><option value="">—</option>${Array.from({length:24},(_,i)=>`<option ${L.time&&L.time.split(':')[0]==String(i).padStart(2,'0')?'selected':''}>${String(i).padStart(2,'0')}</option>`).join('')}</select>
+      <span style="color:var(--muted)">:</span>
+      <select id="f-lgm" style="width:auto">${Array.from({length:12},(_,i)=>`<option ${L.time&&L.time.split(':')[1]==String(i*5).padStart(2,'0')?'selected':''}>${String(i*5).padStart(2,'0')}</option>`).join('')}</select>
+    </div>
+    <div class="actions">
+      ${legId?`<button class="btn danger sm" onclick="delLegion('${dutyId}','${legId}',this)">Delete</button>`:''}
+      <button class="btn ghost" onclick="openLegions('${dutyId}')">Back</button>
+      <button class="btn" onclick="saveLegion('${dutyId}','${legId||''}')">Save</button>
+    </div>`);
+}
+function saveLegion(dutyId,legId){
+  const d=S.duties.find(x=>x.id===dutyId);
+  const th=val('f-lgh');
+  const obj={name:val('f-lgname')||'Legion',leader:pickL,time:th!==''?th+':'+(val('f-lgm')||'00'):null};
+  if(!d.legions)d.legions=[];
+  if(legId){Object.assign(d.legions.find(x=>x.id===legId),obj);}
+  else{obj.id=uid();d.legions.push(obj);}
+  save();renderDuties();openLegions(dutyId);
+}
+function delLegion(dutyId,legId,btn){
+  if(btn&&!armed(btn))return;
+  const d=S.duties.find(x=>x.id===dutyId);
+  d.legions=(d.legions||[]).filter(x=>x.id!==legId);
+  save();renderDuties();openLegions(dutyId);
+}
 function openAiTab(){
   const b=document.querySelector('nav button[data-tab="ai"]');
   if(b){b.click();window.scrollTo(0,0);const i=document.getElementById('chat-in');if(i)i.focus();}
@@ -1376,7 +1454,13 @@ if(urlAid)document.getElementById('r-aid').value=urlAid.toLowerCase();
       await pullRemote();
       renderAll();fetchCommunity();fetchProfiles();maybeOfferTz();
       return;
-    }catch(e){TOK='';localStorage.removeItem('wos-tok');}
+    }catch(e){
+      if(!/session expired|wrong/i.test(String(e.message))){
+        renderAll();setSyncUI(false);
+        return;
+      }
+      TOK='';localStorage.removeItem('wos-tok');
+    }
   }
   renderAll();
   lockMode(urlAid?'register':'signin');
