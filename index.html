@@ -204,6 +204,7 @@ footer .links{gap:7px}
   <button class="on" data-tab="duties">📋 Tasks</button>
   <button data-tab="codes">🎁 Codes</button>
   <button data-tab="team">👥 Team</button>
+  <button data-tab="ai" id="tab-ai-btn" style="display:none">🤖 Frosty</button>
 </nav>
 <main>
 
@@ -218,6 +219,19 @@ footer .links{gap:7px}
   </div>
   <p class="toolbar-note" style="margin-bottom:10px">Each task shows who's on it and when the next one is — tap 💬 for its saved messages, ✎ to edit the task.</p>
   <div id="duty-list"></div>
+</section>
+
+<section class="tab" id="tab-ai">
+  <div class="bar"><h2>🤖 Frosty — your alliance AI</h2></div>
+  <p class="toolbar-note" style="margin-bottom:10px">Ask anything about WOS — heroes, gear, events, our schedule. 📷 send a screenshot of your hero or chief gear for upgrade advice. Frosty can even change your settings ("set my timezone to EST").</p>
+  <div id="chat-box" style="display:flex;flex-direction:column;gap:10px;margin:12px 0;min-height:60px"></div>
+  <div style="display:flex;gap:8px;align-items:flex-end">
+    <button class="btn ghost sm" style="height:44px" onclick="document.getElementById('chat-img').click()" title="Attach a screenshot">📷</button>
+    <input type="file" id="chat-img" accept="image/*" style="display:none" onchange="chatImgPicked(event)">
+    <textarea id="chat-in" placeholder="Ask Frosty anything…" style="min-height:44px;height:44px;flex:1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat();}"></textarea>
+    <button class="btn" style="height:44px" id="chat-send" onclick="sendChat()">Send</button>
+  </div>
+  <div id="chat-imgchip" class="toolbar-note" style="margin-top:6px"></div>
 </section>
 
 <section class="tab" id="tab-codes">
@@ -580,6 +594,7 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
   b.classList.add('on');
   document.getElementById('tab-'+b.dataset.tab).classList.add('on');
+  if(b.dataset.tab==='ai')loadChatHistory();
 });
 
 function tickClocks(){
@@ -855,6 +870,76 @@ function endTeamDrag(){
 document.addEventListener('pointerup',endTeamDrag);
 document.addEventListener('pointercancel',endTeamDrag);
 
+let chatMsgs=[], CHATIMG=null, chatHistLoaded=false;
+function chatBubble(role,html){
+  const box=document.getElementById('chat-box');
+  const b=document.createElement('div');
+  b.style.cssText=role==='user'
+    ?'align-self:flex-end;max-width:85%;background:rgba(110,198,255,.16);border:1px solid rgba(110,198,255,.3);border-radius:14px 14px 4px 14px;padding:9px 13px;font-size:14px;white-space:pre-wrap'
+    :'align-self:flex-start;max-width:88%;background:linear-gradient(165deg,rgba(27,44,64,.85),rgba(15,27,42,.95));border:1px solid var(--border);border-radius:14px 14px 14px 4px;padding:10px 13px;font-size:14px;white-space:pre-wrap;line-height:1.45';
+  b.innerHTML=html;
+  box.appendChild(b);
+  b.scrollIntoView({block:'end'});
+  return b;
+}
+function feedbackRow(logId){
+  const div=document.createElement('div');
+  div.style.cssText='align-self:flex-start;font-size:12px;color:var(--muted);margin-top:-4px';
+  div.innerHTML=`Helpful? <button class="btn ghost sm" onclick="sendFeedback('${logId}',true,this)">👍</button> <button class="btn ghost sm" onclick="sendFeedback('${logId}',false,this)">👎</button>`;
+  document.getElementById('chat-box').appendChild(div);
+}
+async function sendFeedback(id,val,btn){
+  try{await rpc('chat_feedback',{tok:TOK,p_id:id,p_helpful:val});btn.parentElement.innerHTML=val?'Thanks! ❄':'Thanks — Frosty will study harder 📚';}catch(e){}
+}
+function chatImgPicked(ev){
+  const f=ev.target.files[0];if(!f)return;
+  const img=new Image();
+  img.onload=()=>{
+    const max=1200, s=Math.min(1,max/Math.max(img.width,img.height));
+    const c=document.createElement('canvas');
+    c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);
+    c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+    CHATIMG=c.toDataURL('image/jpeg',.85);
+    document.getElementById('chat-imgchip').innerHTML='📷 screenshot attached · <a href="#" onclick="event.preventDefault();CHATIMG=null;this.parentElement.textContent=\'\'" style="color:var(--red)">remove</a>';
+  };
+  img.src=URL.createObjectURL(f);
+  ev.target.value='';
+}
+async function loadChatHistory(){
+  if(chatHistLoaded||!TOK)return;
+  chatHistLoaded=true;
+  try{
+    const hist=await rpc('my_chat_log',{tok:TOK});
+    hist.forEach(h=>{
+      chatBubble('user',esc(h.q));
+      chatBubble('ai',esc(h.a));
+    });
+    if(!hist.length)chatBubble('ai','❄ Hey, I\'m Frosty! Ask me anything about Whiteout Survival — bear comps, hero priorities, SvS prep, our alliance schedule… or send me a screenshot of your gear.');
+  }catch(e){}
+}
+async function sendChat(){
+  const inp=document.getElementById('chat-in');
+  const text=inp.value.trim();
+  if(!text&&!CHATIMG)return;
+  inp.value='';
+  const img=CHATIMG;CHATIMG=null;document.getElementById('chat-imgchip').textContent='';
+  chatBubble('user',esc(text)+(img?' 📷':''));
+  chatMsgs.push({role:'user',text:text||'What do you see in this screenshot?'});
+  const think=chatBubble('ai','❄ <i>Frosty is thinking…</i>');
+  document.getElementById('chat-send').disabled=true;
+  try{
+    const r=await fetch('https://pxzkbrgmosykxmkevgek.supabase.co/functions/v1/ai-chat',{
+      method:'POST',headers:syncHeaders(),
+      body:JSON.stringify({tok:TOK,msgs:chatMsgs.slice(-8),image:img})
+    });
+    const j=await r.json();
+    const reply=j.reply||j.error||'No answer — try again.';
+    think.innerHTML=esc(reply).replace(/(https?:\/\/[^\s)]+)/g,'<a href="$1" target="_blank" rel="noopener" style="color:var(--ice)">$1</a>');
+    chatMsgs.push({role:'assistant',text:reply});
+    if(j.log_id)feedbackRow(j.log_id);
+  }catch(e){think.textContent='⚠ Connection problem — try again.';}
+  document.getElementById('chat-send').disabled=false;
+}
 async function renderAccountUI(){
   const info=document.getElementById('acct-info');
   if(info)info.textContent='Signed in as '+UNAME+' ('+ROLE+') · '+UEMAIL;
@@ -1142,6 +1227,7 @@ function applyRoleUI(){
   const e=CANedit(),g=CANmanage();
   const set=(id,on)=>{const x=document.getElementById(id);if(x)x.style.display=on?'':'none';};
   set('btn-add-task',e);set('btn-add-code',e);set('btn-add-person',g);
+  set('tab-ai-btn',AID==='unf');
   const bootRich=BOOT_CACHE&&((BOOT_CACHE.team||[]).length>0||(BOOT_CACHE.duties||[]).some(d=>(d.primary||[]).length));
   const remotePoor=(S.team||[]).length===0&&!(S.duties||[]).some(d=>(d.primary||[]).length);
   const rc=document.getElementById('restore-card');
