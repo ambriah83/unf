@@ -499,7 +499,7 @@ async function signIn(){
   err.textContent='';
   try{
     applyAuth(await rpc('login',{p_email:em,p_pass:pw}));
-    hideLock();await pullRemote();renderAll();fetchCommunity();fetchProfiles();maybeOfferTz();
+    hideLock();await pullRemote();renderAll();fetchCommunity();fetchProfiles();maybeOfferTz();checkNewUsers();
   }catch(e){err.textContent=e.message.includes('wrong')?'Wrong email or password':e.message;}
 }
 async function registerAcct(){
@@ -646,6 +646,22 @@ function hdrTzChanged(){
   localStorage.setItem('wos-tz',TZ);
   tickClocks();renderDuties();
   if(TOK){MYP.tz=TZ;rpc('update_profile',{tok:TOK,p_tz:TZ,p_bday:null,p_loc:null,p_avatar:null}).catch(()=>{});}
+}
+async function checkNewUsers(){
+  if(!CANadmin())return;
+  try{
+    const users=await rpc('list_users',{tok:TOK});
+    const r3=users.filter(u=>u.role==='R3');
+    if(!r3.length)return;
+    const old=document.getElementById('nu-toast');if(old)old.remove();
+    const el=document.createElement('div');
+    el.id='nu-toast';
+    el.style.cssText='position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:60;background:linear-gradient(165deg,rgba(30,48,70,.97),rgba(16,28,44,.99));border:1px solid rgba(255,200,92,.45);border-radius:12px;padding:12px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;max-width:92vw;box-shadow:0 8px 30px rgba(0,0,0,.5)';
+    el.innerHTML=`<span style="font-size:13px">🔔 <b style="color:var(--amber)">${r3.length}</b> new member${r3.length>1?'s':''} waiting for a role: <b>${r3.map(u=>esc(u.name)).join(', ')}</b></span>
+      <button class="btn sm" onclick="document.getElementById('nu-toast').remove();document.querySelector('nav button[data-tab=team]').click();document.getElementById('admin-panel').scrollIntoView({behavior:'smooth'})">Review</button>
+      <button class="btn ghost sm" onclick="document.getElementById('nu-toast').remove()">Later</button>`;
+    document.body.appendChild(el);
+  }catch(e){}
 }
 function maybeOfferTz(){
   const dev=Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -1533,7 +1549,7 @@ if(urlAid)document.getElementById('r-aid').value=urlAid.toLowerCase();
       localStorage.setItem('wos-aid',AID);
       renderAll();
       await pullRemote();
-      renderAll();fetchCommunity();fetchProfiles();maybeOfferTz();
+      renderAll();fetchCommunity();fetchProfiles();maybeOfferTz();checkNewUsers();
       return;
     }catch(e){
       if(!/session expired|wrong/i.test(String(e.message))){
