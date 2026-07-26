@@ -818,7 +818,12 @@ function renderDuties(){
             ${CANedit()?`<button class="btn ghost sm" onclick="openDuty('${d.id}')" title="Edit task" style="color:var(--muted);font-size:14px">✎</button>`:''}
           </div>
         </div>
-        ${(d.legions||[]).length?`<div style="margin-top:8px;border-top:1px dashed rgba(110,198,255,.15);padding-top:6px">${d.legions.map(L=>`<div style="font-size:12px;color:var(--muted);padding:2px 0">⚔ <b style="color:var(--text)">${esc(L.name)}</b>${L.time?' · '+convTime(L.time):''} · 👑 ${L.leader&&L.leader.length?esc(L.leader.join(', ')):'<span style="color:var(--amber)">needs a lead</span>'}</div>`).join('')}</div>`:''}
+        ${(d.legions||[]).length?`<div style="margin-top:8px;border-top:1px dashed rgba(110,198,255,.15);padding-top:6px">${d.legions.map(L=>{
+          const mine=(L.going||[]).includes(UNAME);
+          return `<div style="font-size:12px;color:var(--muted);padding:3px 0;display:flex;align-items:center;gap:6px;flex-wrap:wrap">⚔ <b style="color:var(--text)">${esc(L.name)}</b>${L.time?' · '+convTime(L.time):''} · 👑 ${L.leader&&L.leader.length?esc(L.leader.join(', ')):'<span style="color:var(--amber)">needs a lead</span>'}
+            ${mine?`<button class="btn sm" style="background:rgba(93,211,158,.15);border:1px solid rgba(93,211,158,.4);color:var(--green);box-shadow:none" onclick="joinLegion('${d.id}','')">✓ I'm in</button>`:`<button class="btn ghost sm" onclick="joinLegion('${d.id}','${L.id}')">🙋 I'm in</button>`}
+            <span class="chip norm" style="cursor:pointer" onclick="showLegionGoing('${d.id}','${L.id}')" title="See who's in">${(L.going||[]).length}</span>
+          </div>`;}).join('')}</div>`:''}
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;gap:6px;flex-wrap:wrap">
           <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
             ${CANedit()&&dueDD(d)===0?`<button class="btn sm" style="background:rgba(93,211,158,.15);border:1px solid rgba(93,211,158,.4);color:var(--green);box-shadow:none" onclick="markDone('${d.id}')" title="Done for today — jump to the next one">${t('done_btn')}</button>`:''}
@@ -829,7 +834,7 @@ function renderDuties(){
                 ?'<span class="chip" style="background:rgba(93,211,158,.15);border-color:rgba(93,211,158,.45);color:var(--green)">⭐ My bear</span>'
                 :`<button class="btn ghost sm" onclick="claimBear('${d.id}')">${myBear?'Switch to this bear':'⭐ Claim as my bear'}</button>`)
                 +`<span class="chip norm" style="cursor:pointer" onclick="showGoing('${d.id}')" title="See who's in this bear">${(d.going||[]).length} in</span>`;
-            })():scheduled&&d.rsvp?`<button class="btn ghost sm" onclick="toggleRsvp('${d.id}')" ${(d.going||[]).includes(UNAME)?'style="color:var(--green);border-color:rgba(93,211,158,.4)"':''}>🙋 ${(d.going||[]).includes(UNAME)?"I'm in ✓":"I'm in"}</button>
+            })():scheduled&&d.rsvp&&!(d.legions||[]).length?`<button class="btn ghost sm" onclick="toggleRsvp('${d.id}')" ${(d.going||[]).includes(UNAME)?'style="color:var(--green);border-color:rgba(93,211,158,.4)"':''}>🙋 ${(d.going||[]).includes(UNAME)?"I'm in ✓":"I'm in"}</button>
             <span class="chip norm" style="cursor:pointer" onclick="showGoing('${d.id}')" title="See who's going">${(d.going||[]).length} going</span>`:''}
           </div>
           <div style="display:flex;gap:6px">
@@ -927,6 +932,23 @@ function convTime(hhmm){
   const d=new Date();d.setUTCHours(h,m,0,0);
   return d.toLocaleTimeString(LOCALE(),{hour:'numeric',minute:'2-digit',timeZone:TZ})+' '+tzAbbr(TZ);
 }
+async function joinLegion(dutyId,legId){
+  const d=S.duties.find(x=>x.id===dutyId);
+  (d.legions||[]).forEach(L=>{
+    L.going=(L.going||[]).filter(n=>n!==UNAME);
+    if(L.id===legId)L.going.push(UNAME);
+  });
+  localStorage.setItem(cacheKey(),JSON.stringify(S));
+  renderDuties();
+  try{await rpc('join_legion',{tok:TOK,p_duty:dutyId,p_legion:legId||''});}catch(e){authFail(e);}
+}
+function showLegionGoing(dutyId,legId){
+  const d=S.duties.find(x=>x.id===dutyId);
+  const L=(d.legions||[]).find(x=>x.id===legId);
+  showModal(`<h3>⚔ ${esc(L.name)} — ${esc(d.name)}</h3>
+    ${(L.going||[]).map(n=>`<div style="padding:5px 0;border-bottom:1px dashed rgba(110,198,255,.1)">${esc(n)}</div>`).join('')||'<p class="toolbar-note" style="margin-top:8px">Nobody in this legion yet.</p>'}
+    <div class="actions"><button class="btn" onclick="closeModal()">Close</button></div>`);
+}
 async function claimBear(id){
   S.duties.forEach(x=>{
     if((x.name||'').startsWith('Bear Trap')){
@@ -1021,8 +1043,8 @@ function chatBubble(role,html){
 }
 function feedbackRow(logId){
   const div=document.createElement('div');
-  div.style.cssText='align-self:flex-start;font-size:12px;color:var(--muted);margin-top:-4px';
-  div.innerHTML=`Helpful? <button class="btn ghost sm" onclick="sendFeedback('${logId}',true,this)">👍</button> <button class="btn ghost sm" onclick="sendFeedback('${logId}',false,this)">👎</button>`;
+  div.style.cssText='align-self:flex-start;font-size:12px;color:var(--muted);margin-top:-4px;display:flex;gap:6px;align-items:center';
+  div.innerHTML=`Was this helpful? <button class="btn ghost sm" onclick="sendFeedback('${logId}',true,this)">👍 Yes</button> <button class="btn ghost sm" onclick="sendFeedback('${logId}',false,this)">👎 No</button>`;
   document.getElementById('chat-box').appendChild(div);
 }
 async function sendFeedback(id,val,btn){
@@ -1049,7 +1071,8 @@ async function loadChatHistory(){
     const hist=await rpc('my_chat_log',{tok:TOK});
     hist.forEach(h=>{
       chatBubble('user',esc(h.q));
-      chatBubble('ai',esc(h.a));
+      chatBubble('ai',esc(h.a).replace(/(https?:\/\/[^\s)]+)/g,'<a href="$1" target="_blank" rel="noopener" style="color:var(--ice)">$1</a>'));
+      if(h.helpful===null||h.helpful===undefined)feedbackRow(h.id);
     });
     if(!hist.length)chatBubble('ai','❄ Hey, I\'m Frosty! Ask me anything about Whiteout Survival — our alliance schedule and event rules (like your specific bear trap), hero priorities, SvS prep… or send me a screenshot of your hero gear and I can help you decide what to upgrade next.');
   }catch(e){}
