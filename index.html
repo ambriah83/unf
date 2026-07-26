@@ -195,7 +195,7 @@ footer .links{gap:7px}
       <b id="clock-local">--:--</b>
     </span>
     <b id="clock-utc">--:--</b>
-    <button onclick="location.reload()" title="Refresh the app" style="background:rgba(21,34,52,.6);border:1px solid var(--border);border-radius:50%;color:var(--ice);font-size:13px;cursor:pointer;width:24px;height:24px;line-height:1;padding:0;display:inline-flex;align-items:center;justify-content:center">⟳</button>
+    <button onclick="const u=new URL(location);u.searchParams.set('r',Date.now());location.href=u" title="Refresh the app" style="background:rgba(21,34,52,.6);border:1px solid var(--border);border-radius:50%;color:var(--ice);font-size:13px;cursor:pointer;width:24px;height:24px;line-height:1;padding:0;display:inline-flex;align-items:center;justify-content:center">⟳</button>
     <span id="sync-dot"></span>
   </div>
   <button class="btn ghost sm" data-i18n="utc_conv" style="margin-top:8px" onclick="openConverter()">🕐 UTC converter</button>
